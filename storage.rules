@@ -1,0 +1,9 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Deploy in Firebase Console → Storage → Rules if uploads fail with storage/unauthorized.
+    match /speech-training/{userId}/{dayFolder}/{fileName} {
+      allow read, write: if true;
+    }
+  }
+}

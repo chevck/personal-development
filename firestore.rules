@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Progress docs use anonymous local user IDs — tighten before production.
+    match /projects/speech-training/progress/{userId} {
+      allow read, write: if true;
+    }
+  }
+}
