@@ -91,7 +91,7 @@ function ProgressRing({ pct }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-2xl font-bold text-taskly-ink">{pct}%</span>
-        <span className="text-[10px] uppercase tracking-wider text-taskly-muted">done</span>
+        <span className="text-xs uppercase tracking-wider text-taskly-muted">done</span>
       </div>
     </div>
   );
@@ -101,7 +101,7 @@ function DayGrid({ completed, activeDay, onSelectDay }) {
   const allDays = phases.flatMap((p) => p.days);
   return (
     <div className="mt-4">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-taskly-muted">
+      <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-taskly-muted">
         21-day track
       </p>
       <div className="grid grid-cols-7 gap-1.5">
@@ -114,7 +114,7 @@ function DayGrid({ completed, activeDay, onSelectDay }) {
               key={d.day}
               type="button"
               onClick={() => onSelectDay(d)}
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition ${
+              className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition ${
                 done
                   ? 'bg-taskly-yellow text-taskly-ink'
                   : isActive
@@ -158,7 +158,7 @@ function DayDetail({
       <button
         type="button"
         onClick={onBack}
-        className="mb-6 flex items-center gap-1 text-sm font-medium text-taskly-muted transition hover:text-taskly-ink"
+        className="mb-6 flex items-center gap-1 text-base font-medium text-taskly-muted transition hover:text-taskly-ink"
       >
         <span aria-hidden>‹</span> Back to schedule
       </button>
@@ -168,17 +168,17 @@ function DayDetail({
           <div className="flex items-start justify-between gap-4">
             <div>
               <span
-                className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${pill}`}
+                className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${pill}`}
               >
                 {day.type}
               </span>
-              <p className="mt-3 text-sm font-medium text-taskly-muted">
+              <p className="mt-3 text-base font-medium text-taskly-muted">
                 Day {day.day} · {phaseLabels[phase.id]}
               </p>
-              <h2 className="mt-1 text-3xl font-bold tracking-tight text-taskly-ink">
+              <h2 className="mt-1 text-4xl font-bold tracking-tight text-taskly-ink">
                 {day.title}
               </h2>
-              <p className="mt-2 text-sm text-taskly-muted">{day.duration}</p>
+              <p className="mt-2 text-base text-taskly-muted">{day.duration}</p>
             </div>
             <DayIcon type={day.type} />
           </div>
@@ -186,33 +186,33 @@ function DayDetail({
 
         <div className="space-y-5 p-8">
           <section>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-taskly-muted">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-taskly-muted">
               Today&apos;s practice
             </h3>
-            <p className="mt-2 text-[15px] leading-relaxed text-taskly-ink/90">
+            <p className="mt-2 text-lg leading-relaxed text-taskly-ink/90">
               {day.description}
             </p>
           </section>
 
           <section className="rounded-2xl bg-taskly-surface p-5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-taskly-peach-text">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-taskly-peach-text">
               The exercise
             </h3>
-            <p className="mt-2 text-sm leading-relaxed text-taskly-ink/80">{day.exercise}</p>
+            <p className="mt-2 text-base leading-relaxed text-taskly-ink/80">{day.exercise}</p>
           </section>
 
           <section className="rounded-2xl border border-taskly-border p-5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-violet-600">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-violet-600">
               Why this works
             </h3>
-            <p className="mt-2 text-sm italic leading-relaxed text-taskly-muted">{day.why}</p>
+            <p className="mt-2 text-base italic leading-relaxed text-taskly-muted">{day.why}</p>
           </section>
 
           <section className="border-l-4 border-taskly-yellow pl-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-taskly-muted">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-taskly-muted">
               Coach&apos;s tip
             </h3>
-            <p className="mt-2 text-sm leading-relaxed text-taskly-ink/75">{day.tip}</p>
+            <p className="mt-2 text-base leading-relaxed text-taskly-ink/75">{day.tip}</p>
           </section>
 
           <DayRecorder
@@ -272,7 +272,7 @@ export default function SpeechTraining() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white font-sans text-taskly-muted">
+      <div className="speakly-app flex min-h-screen items-center justify-center bg-white font-speakly text-lg text-taskly-muted">
         Loading your progress…
       </div>
     );
@@ -282,7 +282,7 @@ export default function SpeechTraining() {
     activeDay && phases.find((p) => p.days.some((d) => d.day === activeDay.day));
 
   return (
-    <div className="min-h-screen bg-white font-sans text-taskly-ink">
+    <div className="speakly-app min-h-screen bg-white font-speakly text-taskly-ink">
       <div className="mx-auto flex min-h-screen max-w-[1280px] flex-col lg:flex-row">
         {/* Left sidebar */}
         <aside className="w-full shrink-0 border-b border-taskly-border bg-white p-6 lg:w-72 lg:border-b-0 lg:border-r lg:p-8">
@@ -290,10 +290,10 @@ export default function SpeechTraining() {
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-taskly-yellow text-lg font-bold text-taskly-ink">
               +
             </span>
-            <span className="text-xl font-bold text-taskly-ink">speakly</span>
+            <span className="text-2xl font-bold text-taskly-ink">speakly</span>
           </Link>
 
-          <p className="text-xs font-semibold uppercase tracking-wider text-taskly-muted">
+          <p className="text-sm font-semibold uppercase tracking-wider text-taskly-muted">
             Phases
           </p>
           <ul className="mt-3 space-y-2">
@@ -314,9 +314,9 @@ export default function SpeechTraining() {
                         : 'bg-taskly-surface hover:bg-neutral-100'
                     }`}
                   >
-                    <p className="text-xs font-medium text-taskly-muted">{p.subtitle}</p>
-                    <p className="mt-0.5 font-semibold text-taskly-ink">{phaseLabels[p.id]}</p>
-                    <p className="mt-1 text-xs text-taskly-muted">
+                    <p className="text-sm font-medium text-taskly-muted">{p.subtitle}</p>
+                    <p className="mt-0.5 text-lg font-semibold text-taskly-ink">{phaseLabels[p.id]}</p>
+                    <p className="mt-1 text-sm text-taskly-muted">
                       {phaseDone}/{p.days.length} days
                     </p>
                   </button>
@@ -353,11 +353,11 @@ export default function SpeechTraining() {
           ) : (
             <>
               <header className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+                <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
                   <span className="text-taskly-muted">Phase schedule — </span>
                   <span className="text-taskly-yellow">{phase.subtitle}</span>
                 </h1>
-                <p className="mt-2 max-w-lg text-sm text-taskly-muted">{phase.tagline}</p>
+                <p className="mt-2 max-w-lg text-base text-taskly-muted">{phase.tagline}</p>
               </header>
 
               <ul className="space-y-3">
@@ -392,28 +392,28 @@ export default function SpeechTraining() {
                           {isDone ? (
                             <CheckIcon className="h-5 w-5" />
                           ) : (
-                            <span className="text-sm font-bold">{day.day}</span>
+                            <span className="text-base font-bold">{day.day}</span>
                           )}
                         </span>
 
                         {!isDone && <DayIcon type={day.type} />}
 
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-taskly-ink">{day.title}</p>
+                          <p className="text-lg font-semibold text-taskly-ink">{day.title}</p>
                           <div className="mt-1.5 flex flex-wrap items-center gap-2">
                             <span
-                              className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${pill}`}
+                              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${pill}`}
                             >
                               {day.type}
                             </span>
-                            <span className="text-xs text-taskly-muted">{day.duration}</span>
+                            <span className="text-sm text-taskly-muted">{day.duration}</span>
                             {isCurrent && (
-                              <span className="rounded-full bg-taskly-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                              <span className="rounded-full bg-taskly-ink px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
                                 Up next
                               </span>
                             )}
                             {locked && (
-                              <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-neutral-500">
+                              <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-neutral-500">
                                 Locked
                               </span>
                             )}
@@ -429,7 +429,7 @@ export default function SpeechTraining() {
                 })}
               </ul>
 
-              <p className="mt-8 text-center text-xs text-taskly-muted">
+              <p className="mt-8 text-center text-sm text-taskly-muted">
                 Tap a day to open exercises and record your practice.
               </p>
             </>
@@ -439,29 +439,29 @@ export default function SpeechTraining() {
         {/* Right sidebar */}
         <aside className="w-full shrink-0 border-t border-taskly-border bg-taskly-surface/50 p-6 lg:w-64 lg:border-l lg:border-t-0 lg:p-8">
           <div className="rounded-3xl bg-white p-6 shadow-card">
-            <p className="text-sm font-semibold text-taskly-ink">Your progress</p>
+            <p className="text-base font-semibold text-taskly-ink">Your progress</p>
             <div className="mt-4 flex justify-center">
               <ProgressRing pct={progressPct} />
             </div>
-            <p className="mt-3 text-center text-sm text-taskly-muted">
+            <p className="mt-3 text-center text-base text-taskly-muted">
               <span className="font-bold text-taskly-ink">{completedCount}</span> of 21 days
               complete
             </p>
           </div>
 
           <div className="mt-4 rounded-3xl bg-white p-5 shadow-soft">
-            <p className="text-xs font-bold uppercase tracking-wider text-taskly-muted">
+            <p className="text-sm font-bold uppercase tracking-wider text-taskly-muted">
               Phase goal
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-taskly-ink/80">{phase.goal}</p>
+            <p className="mt-2 text-base leading-relaxed text-taskly-ink/80">{phase.goal}</p>
           </div>
 
           {currentDayNum && !activeDay && (
             <div className="mt-4 rounded-3xl bg-taskly-yellow p-5">
-              <p className="text-xs font-bold uppercase tracking-wider text-taskly-ink/60">
+              <p className="text-sm font-bold uppercase tracking-wider text-taskly-ink/60">
                 Focus today
               </p>
-              <p className="mt-1 text-lg font-bold text-taskly-ink">Day {currentDayNum}</p>
+              <p className="mt-1 text-xl font-bold text-taskly-ink">Day {currentDayNum}</p>
               <button
                 type="button"
                 onClick={() => {
@@ -476,7 +476,7 @@ export default function SpeechTraining() {
             </div>
           )}
 
-          <p className="mt-6 text-center text-[11px] text-taskly-muted">
+          <p className="mt-6 text-center text-xs text-taskly-muted">
             {canRecord
               ? 'Recordings saved to Firebase Storage'
               : isSynced
@@ -484,7 +484,7 @@ export default function SpeechTraining() {
                 : 'Saved locally'}
           </p>
           {syncError && (
-            <p className="mt-2 text-center text-[11px] text-red-500">{syncError}</p>
+            <p className="mt-2 text-center text-xs text-red-500">{syncError}</p>
           )}
         </aside>
       </div>

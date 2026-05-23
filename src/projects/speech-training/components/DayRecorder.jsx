@@ -159,10 +159,10 @@ export default function DayRecorder({
   if (locked) {
     return (
       <section className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-taskly-muted">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-taskly-muted">
           Record your practice
         </h3>
-        <p className="mt-2 text-sm text-taskly-muted">{lockedReason}</p>
+        <p className="mt-2 text-base text-taskly-muted">{lockedReason}</p>
       </section>
     );
   }
@@ -170,10 +170,10 @@ export default function DayRecorder({
   if (!canRecord) {
     return (
       <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-amber-800">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-amber-800">
           Record your practice
         </h3>
-        <p className="mt-2 text-sm text-amber-900/80">
+        <p className="mt-2 text-base text-amber-900/80">
           Add Firebase Storage to <code className="rounded bg-white/60 px-1">.env</code> (including{' '}
           <code className="rounded bg-white/60 px-1">REACT_APP_FIREBASE_STORAGE_BUCKET</code>
           ), enable Storage in the Firebase console, and deploy{' '}
@@ -186,29 +186,29 @@ export default function DayRecorder({
   return (
     <section className="rounded-2xl border-2 border-taskly-yellow/40 bg-taskly-surface p-5">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-taskly-ink">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-taskly-ink">
           Record your practice
         </h3>
         {isSaved && (
-          <span className="rounded-full bg-taskly-yellow px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-taskly-ink">
+          <span className="rounded-full bg-taskly-yellow px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-taskly-ink">
             Complete
           </span>
         )}
       </div>
 
-      <p className="mt-1 text-sm text-taskly-muted">
+      <p className="mt-1 text-base text-taskly-muted">
         Record your exercise, listen back, then save when you&apos;re happy with it.
       </p>
 
       {error && (
-        <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
+        <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-base text-red-600" role="alert">
           {error}
         </p>
       )}
 
       {isSaved && status !== 'preview' && recording?.downloadUrl && (
         <div className="mt-4 rounded-xl bg-white p-4 shadow-soft">
-          <p className="mb-2 text-xs font-semibold text-taskly-muted">
+          <p className="mb-2 text-sm font-semibold text-taskly-muted">
             Your saved recording
             {recording.recordedAt && (
               <span className="ml-2 font-normal">
@@ -220,7 +220,7 @@ export default function DayRecorder({
             <track kind="captions" />
           </audio>
           {recording.durationMs != null && (
-            <p className="mt-1 text-xs text-taskly-muted">
+            <p className="mt-1 text-sm text-taskly-muted">
               Duration: {formatDuration(recording.durationMs)}
             </p>
           )}
@@ -229,7 +229,7 @@ export default function DayRecorder({
 
       {status === 'preview' && previewUrl && (
         <div className="mt-4 rounded-xl border-2 border-taskly-yellow/60 bg-white p-4 shadow-soft">
-          <p className="mb-2 text-xs font-semibold text-taskly-ink">
+          <p className="mb-2 text-sm font-semibold text-taskly-ink">
             Listen before saving · {formatDuration(previewDurationMs)}
           </p>
           <audio controls src={previewUrl} className="w-full" preload="metadata">
@@ -243,7 +243,7 @@ export default function DayRecorder({
           <button
             type="button"
             onClick={startRecording}
-            className="flex min-w-[140px] flex-1 items-center justify-center gap-2 rounded-2xl bg-taskly-ink py-3.5 text-sm font-bold text-white transition hover:bg-neutral-800"
+            className="flex min-w-[140px] flex-1 items-center justify-center gap-2 rounded-2xl bg-taskly-ink py-4 text-base font-bold text-white transition hover:bg-neutral-800"
           >
             <span className="relative flex h-3 w-3">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
@@ -255,14 +255,14 @@ export default function DayRecorder({
 
         {status === 'recording' && (
           <>
-            <div className="flex flex-1 items-center gap-3 rounded-2xl bg-white px-4 py-3 font-mono text-lg font-semibold text-taskly-ink">
+            <div className="flex flex-1 items-center gap-3 rounded-2xl bg-white px-4 py-3 font-mono text-xl font-semibold text-taskly-ink">
               <span className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
               {formatDuration(elapsedMs)}
             </div>
             <button
               type="button"
               onClick={stopRecording}
-              className="rounded-2xl bg-taskly-yellow px-6 py-3.5 text-sm font-bold text-taskly-ink transition hover:bg-taskly-yellow-hover"
+              className="rounded-2xl bg-taskly-yellow px-6 py-4 text-base font-bold text-taskly-ink transition hover:bg-taskly-yellow-hover"
             >
               Stop
             </button>
@@ -270,7 +270,7 @@ export default function DayRecorder({
         )}
 
         {isUploading && (
-          <div className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-medium text-taskly-muted">
+          <div className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white py-4 text-base font-medium text-taskly-muted">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-taskly-yellow border-t-transparent" />
             Saving to Firebase…
           </div>
@@ -281,14 +281,14 @@ export default function DayRecorder({
             <button
               type="button"
               onClick={handleReRecord}
-              className="rounded-2xl border border-taskly-border bg-white px-5 py-3.5 text-sm font-semibold text-taskly-ink"
+              className="rounded-2xl border border-taskly-border bg-white px-5 py-4 text-base font-semibold text-taskly-ink"
             >
               Try again
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-taskly-ink py-3.5 text-sm font-bold text-white transition hover:bg-neutral-800"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-taskly-ink py-4 text-base font-bold text-white transition hover:bg-neutral-800"
             >
               Save recording
             </button>
@@ -301,7 +301,7 @@ export default function DayRecorder({
           type="button"
           onClick={() => onClearProgress(dayNum)}
           disabled={isUploading}
-          className="mt-4 w-full text-center text-xs font-medium text-taskly-muted underline-offset-2 hover:text-red-500 hover:underline disabled:opacity-50"
+          className="mt-4 w-full text-center text-sm font-medium text-taskly-muted underline-offset-2 hover:text-red-500 hover:underline disabled:opacity-50"
         >
           Reset day (removes this day and all later progress)
         </button>
