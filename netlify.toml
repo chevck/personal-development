@@ -6,5 +6,5 @@
 # Handle SPA routing by redirecting all paths to index.html
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/public/index.html"
   status = 200
