@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { buildAssessUrl, createAssessmentSubmission } from '../../../lib/speechTrainingAssessments';
+import { createAssessmentSubmission } from '../../../lib/speechTrainingAssessments';
 import { getUserId } from '../../../lib/userId';
 
 export default function ShareForReview({ day, recording, disabled }) {
@@ -12,13 +12,13 @@ export default function ShareForReview({ day, recording, disabled }) {
     setError(null);
     setSharing(true);
     try {
-      const shareId = await createAssessmentSubmission({
+      const { url } = await createAssessmentSubmission({
         userId: getUserId(),
         dayNum: day.day,
         day,
         recording,
       });
-      setShareUrl(buildAssessUrl(shareId));
+      setShareUrl(url);
     } catch (err) {
       setError(err.message || 'Could not create share link.');
     } finally {

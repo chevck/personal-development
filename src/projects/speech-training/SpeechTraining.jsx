@@ -3,7 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { phases } from './phases';
 import { useSpeechTrainingProgress } from '../../hooks/useSpeechTrainingProgress';
-import { getNextAllowedDay, isDayLocked } from '../../lib/speechTrainingProgress';
+import {
+  getDayLockMessage,
+  getNextAllowedDay,
+  getWaitingForNextDayMessage,
+  isDayLocked,
+} from '../../lib/speechTrainingProgress';
 import DayRecorder from './components/DayRecorder';
 import ShareForReview from './components/ShareForReview';
 import AssessmentFeedback from './components/AssessmentFeedback';
@@ -100,7 +105,14 @@ function ProgressRing({ pct }) {
   );
 }
 
-function DayGrid({ completed, assessments, activeDay, onSelectDay }) {
+function DayGrid({
+  completed,
+  assessments,
+  programStartDate,
+  now,
+  activeDay,
+  onSelectDay,
+}) {
   const allDays = phases.flatMap((p) => p.days);
   return (
     <div className="mt-4">
@@ -110,7 +122,10 @@ function DayGrid({ completed, assessments, activeDay, onSelectDay }) {
       <div className="grid grid-cols-7 gap-1.5">
         {allDays.map((d) => {
           const done = completed[d.day] && !assessments?.[d.day]?.requiresRedo;
-          const locked = isDayLocked(d.day, completed);
+          const locked = isDayLocked(d.day, completed, assessments, programStartDate, now);
+          const lockMessage = locked
+            ? getDayLockMessage(d.day, completed, assessments, programStartDate, now)
+            : null;
           const isActive = activeDay?.day === d.day;
           return (
             <button
@@ -126,11 +141,7 @@ function DayGrid({ completed, assessments, activeDay, onSelectDay }) {
                       ? 'bg-neutral-100 text-neutral-300'
                       : 'bg-white text-taskly-muted hover:bg-neutral-100'
               }`}
-              title={
-                locked
-                  ? `Day ${d.day} — complete Day ${d.day - 1} first`
-                  : `Day ${d.day}: ${d.title}`
-              }
+              title={locked ? lockMessage : `Day ${d.day}: ${d.title}`}
             >
               {done ? <CheckIcon className="h-3.5 w-3.5" /> : locked ? '🔒' : d.day}
             </button>
@@ -150,6 +161,7 @@ function DayDetail({
   canRecord,
   uploading,
   locked,
+  lockedReason,
   onBack,
   onSaveRecording,
   onClearProgress,
@@ -226,11 +238,7 @@ function DayDetail({
             canRecord={canRecord}
             uploading={uploading}
             locked={locked}
-            lockedReason={
-              locked
-                ? `Complete Day ${day.day - 1} before you can record Day ${day.day}.`
-                : undefined
-            }
+            lockedReason={locked ? lockedReason : undefined}
             onSaveRecording={onSaveRecording}
             onClearProgress={onClearProgress}
           />
@@ -258,6 +266,8 @@ export default function SpeechTraining() {
     syncError,
     isSynced,
     canRecord,
+    programStartDate,
+    now,
   } = useSpeechTrainingProgress();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -272,7 +282,15 @@ export default function SpeechTraining() {
   }, [completed, assessments]);
   const progressPct = Math.round((completedCount / 21) * 100);
 
-  const currentDayNum = useMemo(() => getNextAllowedDay(completed), [completed]);
+  const currentDayNum = useMemo(
+    () => getNextAllowedDay(completed, assessments, programStartDate, now),
+    [completed, assessments, programStartDate, now]
+  );
+
+  const waitingMessage = useMemo(
+    () => getWaitingForNextDayMessage(completed, assessments, programStartDate, now),
+    [completed, assessments, programStartDate, now]
+  );
 
   const findDayGlobally = (dayNum) => {
     for (const p of phases) {
@@ -367,6 +385,8 @@ export default function SpeechTraining() {
           <DayGrid
             completed={completed}
             assessments={assessments}
+            programStartDate={programStartDate}
+            now={now}
             activeDay={activeDay}
             onSelectDay={(d) => {
               const match = findDayGlobally(d.day);
@@ -386,7 +406,20 @@ export default function SpeechTraining() {
               assessment={assessments[activeDay.day]}
               canRecord={canRecord}
               uploading={uploadingDay === activeDay.day}
-              locked={isDayLocked(activeDay.day, completed)}
+              locked={isDayLocked(
+                activeDay.day,
+                completed,
+                assessments,
+                programStartDate,
+                now
+              )}
+              lockedReason={getDayLockMessage(
+                activeDay.day,
+                completed,
+                assessments,
+                programStartDate,
+                now
+              )}
               onBack={() => setActiveDay(null)}
               onSaveRecording={saveRecording}
               onClearProgress={clearDayProgress}
@@ -405,7 +438,13 @@ export default function SpeechTraining() {
                 {phase.days.map((day) => {
                   const isDone = completed[day.day] && !assessments[day.day]?.requiresRedo;
                   const isCurrent = day.day === currentDayNum;
-                  const locked = isDayLocked(day.day, completed);
+                  const locked = isDayLocked(
+                    day.day,
+                    completed,
+                    assessments,
+                    programStartDate,
+                    now
+                  );
                   const pill = typePills[day.type] || 'bg-taskly-peach text-taskly-peach-text';
 
                   return (
@@ -497,7 +536,16 @@ export default function SpeechTraining() {
             <p className="mt-2 text-base leading-relaxed text-taskly-ink/80">{phase.goal}</p>
           </div>
 
-          {currentDayNum && !activeDay && (
+          {waitingMessage && !activeDay && (
+            <div className="mt-4 rounded-3xl border border-taskly-yellow/60 bg-taskly-yellow/25 p-5">
+              <p className="text-sm font-bold uppercase tracking-wider text-taskly-ink/60">
+                Well done today
+              </p>
+              <p className="mt-2 text-base leading-relaxed text-taskly-ink">{waitingMessage}</p>
+            </div>
+          )}
+
+          {currentDayNum && !activeDay && !waitingMessage && (
             <div className="mt-4 rounded-3xl bg-taskly-yellow p-5">
               <p className="text-sm font-bold uppercase tracking-wider text-taskly-ink/60">
                 Focus today

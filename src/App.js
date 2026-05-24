@@ -20,6 +20,10 @@ function App() {
           }
         />
         <Route path="/assess/:shareId" element={<AssessSubmission />} />
+        <Route
+          path="/:userCode/:daySegment/:recordingSegment"
+          element={<AssessSubmission />}
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

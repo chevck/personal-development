@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase/config';
-import { submitAssessmentReview } from '../lib/speechTrainingAssessments';
+import {
+  resolveSubmissionDocId,
+  submitAssessmentReview,
+} from '../lib/speechTrainingAssessments';
 
 function formatDuration(ms) {
   if (!ms) return null;
@@ -15,7 +18,18 @@ function formatDuration(ms) {
 const SUBMISSIONS_PATH = 'projects/speech-training/submissions';
 
 export default function AssessSubmission() {
-  const { shareId } = useParams();
+  const params = useParams();
+  const submissionDocId = useMemo(
+    () =>
+      resolveSubmissionDocId({
+        shareId: params.shareId,
+        userCode: params.userCode,
+        daySegment: params.daySegment,
+        recordingSegment: params.recordingSegment,
+      }),
+    [params.shareId, params.userCode, params.daySegment, params.recordingSegment]
+  );
+
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,7 +46,13 @@ export default function AssessSubmission() {
       return undefined;
     }
 
-    const ref = doc(db, SUBMISSIONS_PATH, shareId);
+    if (!submissionDocId) {
+      setError('This assessment link is invalid or has expired.');
+      setLoading(false);
+      return undefined;
+    }
+
+    const ref = doc(db, SUBMISSIONS_PATH, submissionDocId);
     const unsubscribe = onSnapshot(
       ref,
       (snap) => {
@@ -58,14 +78,14 @@ export default function AssessSubmission() {
     );
 
     return unsubscribe;
-  }, [shareId]);
+  }, [submissionDocId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      const review = await submitAssessmentReview(shareId, {
+      const review = await submitAssessmentReview(submissionDocId, {
         score,
         comment,
         assessorName,

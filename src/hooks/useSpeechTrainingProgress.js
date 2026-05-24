@@ -3,12 +3,19 @@ import { doc, getDoc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db, isFirebaseConfigured, isStorageConfigured } from '../firebase/config';
 import { getUserId } from '../lib/userId';
-import { canSaveDay } from '../lib/speechTrainingProgress';
+import {
+  canSaveDay,
+  formatDateKey,
+  getProgramStartDateFromUser,
+  getSaveDayError,
+} from '../lib/speechTrainingProgress';
+import { useProgramClock } from './useProgramClock';
 import { uploadDayRecording, deleteDayRecording } from '../lib/speechTrainingFirebase';
 import { normalizeDayMap, supersedePendingSubmission } from '../lib/speechTrainingAssessments';
 
 const LOCAL_KEY = 'speech-training-completed';
 const LOCAL_RECORDINGS_KEY = 'speech-training-recordings';
+const LOCAL_PROGRAM_START_KEY = 'speech-training-program-start';
 const FIRESTORE_PATH = 'projects/speech-training/progress';
 
 function loadLocal() {
@@ -44,12 +51,23 @@ function progressRef() {
 
 export function useSpeechTrainingProgress() {
   const { user, loading: authLoading } = useAuth();
+  const now = useProgramClock();
   const [completed, setCompleted] = useState(loadLocal);
   const [recordings, setRecordings] = useState(loadLocalRecordings);
   const [assessments, setAssessments] = useState({});
+  const [programStartDate, setProgramStartDate] = useState(() => {
+    try {
+      return localStorage.getItem(LOCAL_PROGRAM_START_KEY);
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [uploadingDay, setUploadingDay] = useState(null);
   const [syncError, setSyncError] = useState(null);
+
+  const effectiveProgramStart =
+    programStartDate || (user ? getProgramStartDateFromUser(user) : formatDateKey(now));
 
   useEffect(() => {
     if (authLoading) {
@@ -72,6 +90,10 @@ export function useSpeechTrainingProgress() {
           const remoteCompleted = normalizeDayMap(data.completed);
           const remoteRecordings = normalizeDayMap(data.recordings);
           const remoteAssessments = normalizeDayMap(data.assessments);
+          if (data.programStartDate) {
+            setProgramStartDate(data.programStartDate);
+            localStorage.setItem(LOCAL_PROGRAM_START_KEY, data.programStartDate);
+          }
           setCompleted(remoteCompleted);
           setRecordings(remoteRecordings);
           setAssessments(remoteAssessments);
@@ -88,34 +110,37 @@ export function useSpeechTrainingProgress() {
       }
     );
 
-    getDoc(ref).then((snapshot) => {
+    getDoc(ref).then(async (snapshot) => {
+      const startDate = getProgramStartDateFromUser(user);
+
       if (!snapshot.exists()) {
+        setProgramStartDate(startDate);
+        localStorage.setItem(LOCAL_PROGRAM_START_KEY, startDate);
+
         const localCompleted = loadLocal();
         const localRecordings = loadLocalRecordings();
-        if (
-          Object.keys(localCompleted).length > 0 ||
-          Object.keys(localRecordings).length > 0
-        ) {
-          setDoc(
-            ref,
-            {
-              email: user.email || null,
-              completed: localCompleted,
-              recordings: localRecordings,
-              updatedAt: new Date().toISOString(),
-            },
-            { merge: true }
-          );
-        } else if (user.email) {
-          setDoc(
-            ref,
-            {
-              email: user.email,
-              updatedAt: new Date().toISOString(),
-            },
-            { merge: true }
-          );
-        }
+        await setDoc(
+          ref,
+          {
+            email: user.email || null,
+            programStartDate: startDate,
+            completed: localCompleted,
+            recordings: localRecordings,
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+        return;
+      }
+
+      if (!snapshot.data().programStartDate) {
+        setProgramStartDate(startDate);
+        localStorage.setItem(LOCAL_PROGRAM_START_KEY, startDate);
+        await setDoc(
+          ref,
+          { programStartDate: startDate, updatedAt: new Date().toISOString() },
+          { merge: true }
+        );
       }
     });
 
@@ -129,8 +154,26 @@ export function useSpeechTrainingProgress() {
       );
     }
 
-    if (!canSaveDay(dayNum, completed, Boolean(recordings[dayNum]))) {
-      throw new Error(`Complete Day ${dayNum - 1} before saving Day ${dayNum}.`);
+    if (
+      !canSaveDay(
+        dayNum,
+        completed,
+        assessments,
+        Boolean(recordings[dayNum]),
+        effectiveProgramStart,
+        now
+      )
+    ) {
+      throw new Error(
+        getSaveDayError(
+          dayNum,
+          completed,
+          assessments,
+          Boolean(recordings[dayNum]),
+          effectiveProgramStart,
+          now
+        )
+      );
     }
 
     setUploadingDay(dayNum);
@@ -218,7 +261,7 @@ export function useSpeechTrainingProgress() {
     } finally {
       setUploadingDay(null);
     }
-  }, [completed, recordings]);
+  }, [completed, recordings, assessments, effectiveProgramStart, now]);
 
   const clearDayProgress = useCallback(async (dayNum) => {
     const daysToClear = [];
@@ -270,7 +313,7 @@ export function useSpeechTrainingProgress() {
         setAssessments(nextAssessments);
       }
     }
-  }, [completed, recordings]);
+  }, [completed, recordings, assessments, effectiveProgramStart, now]);
 
   const toggleComplete = useCallback(
     async (dayNum) => {
@@ -300,6 +343,8 @@ export function useSpeechTrainingProgress() {
     completed,
     recordings,
     assessments,
+    programStartDate: effectiveProgramStart,
+    now,
     toggleComplete,
     saveRecording,
     clearDayProgress,

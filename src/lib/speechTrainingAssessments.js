@@ -1,4 +1,14 @@
-import { doc, getDoc, runTransaction, setDoc } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  query,
+  runTransaction,
+  setDoc,
+  where,
+} from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import { requireAuthUser } from '../firebase/auth';
 
@@ -14,15 +24,96 @@ export function normalizeDayMap(obj) {
   return out;
 }
 
-function createShareId() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return `share-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+function generateShareCode() {
+  return String(Math.floor(10000 + Math.random() * 90000));
 }
 
-export function buildAssessUrl(shareId) {
-  return `${window.location.origin}/assess/${shareId}`;
+export function buildSubmissionDocId(shareCode, dayNum, recordingNum) {
+  return `${shareCode}-day-${dayNum}-recording-${recordingNum}`;
+}
+
+export function buildAssessUrl(shareCode, dayNum, recordingNum) {
+  return `${window.location.origin}/${shareCode}/day-${dayNum}/recording-${recordingNum}`;
+}
+
+export function parseAssessPathSegments(userCode, daySegment, recordingSegment) {
+  const code = String(userCode || '');
+  const dayMatch = String(daySegment || '').match(/^day-(\d+)$/i);
+  const recordingMatch = String(recordingSegment || '').match(/^recording-(\d+)$/i);
+  if (!/^\d{5}$/.test(code) || !dayMatch || !recordingMatch) {
+    return null;
+  }
+  const dayNum = Number(dayMatch[1]);
+  const recordingNum = Number(recordingMatch[1]);
+  if (dayNum < 1 || recordingNum < 1) {
+    return null;
+  }
+  return { shareCode: code, dayNum, recordingNum };
+}
+
+export function resolveSubmissionDocId({
+  shareId,
+  userCode,
+  dayNum,
+  recordingNum,
+  daySegment,
+  recordingSegment,
+}) {
+  if (shareId) {
+    return shareId;
+  }
+
+  const parsed =
+    daySegment != null && recordingSegment != null
+      ? parseAssessPathSegments(userCode, daySegment, recordingSegment)
+      : null;
+
+  const code = parsed?.shareCode ?? String(userCode || '');
+  const day = parsed?.dayNum ?? Number(dayNum);
+  const recording = parsed?.recordingNum ?? Number(recordingNum);
+
+  if (!/^\d{5}$/.test(code) || !Number.isFinite(day) || day < 1 || !Number.isFinite(recording) || recording < 1) {
+    return null;
+  }
+  return buildSubmissionDocId(code, day, recording);
+}
+
+async function isShareCodeTaken(shareCode, excludeUserId) {
+  const snap = await getDocs(
+    query(collection(db, PROGRESS_PATH), where('shareCode', '==', shareCode), limit(5))
+  );
+  return snap.docs.some((d) => d.id !== excludeUserId);
+}
+
+async function allocateShareCode(excludeUserId, attemptsLeft = 12) {
+  if (attemptsLeft <= 0) {
+    throw new Error('Could not create a share code. Please try again.');
+  }
+  const candidate = generateShareCode();
+  const taken = await isShareCodeTaken(candidate, excludeUserId);
+  if (!taken) return candidate;
+  return allocateShareCode(excludeUserId, attemptsLeft - 1);
+}
+
+export async function ensureUserShareCode(userId) {
+  const progressRef = doc(db, PROGRESS_PATH, userId);
+  const progressSnap = await getDoc(progressRef);
+  if (progressSnap.exists() && progressSnap.data().shareCode) {
+    return progressSnap.data().shareCode;
+  }
+
+  const shareCode = await allocateShareCode(userId);
+
+  await setDoc(
+    progressRef,
+    {
+      shareCode,
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+
+  return shareCode;
 }
 
 export async function supersedePendingSubmission(submissionId) {
@@ -54,13 +145,18 @@ export async function createAssessmentSubmission({ userId, dayNum, day, recordin
   const previousPendingId = assessments[dayNum]?.pendingSubmissionId;
   await supersedePendingSubmission(previousPendingId);
 
-  const shareId = createShareId();
-  const submissionRef = doc(db, SUBMISSIONS_PATH, shareId);
+  const shareCode = await ensureUserShareCode(userId);
+  const lastRecordingNum = assessments[dayNum]?.lastRecordingNum || 0;
+  const recordingNum = lastRecordingNum + 1;
+  const submissionDocId = buildSubmissionDocId(shareCode, dayNum, recordingNum);
+  const submissionRef = doc(db, SUBMISSIONS_PATH, submissionDocId);
 
   await setDoc(submissionRef, {
-    shareId,
-    userId,
+    shareId: submissionDocId,
+    shareCode,
     dayNum,
+    recordingNum,
+    userId,
     dayTitle: day.title,
     dayType: day.type,
     exercise: day.exercise,
@@ -74,7 +170,8 @@ export async function createAssessmentSubmission({ userId, dayNum, day, recordin
 
   assessments[dayNum] = {
     ...(assessments[dayNum] || {}),
-    pendingSubmissionId: shareId,
+    pendingSubmissionId: submissionDocId,
+    lastRecordingNum: recordingNum,
     status: 'pending_review',
     sharedAt: new Date().toISOString(),
     requiresRedo: false,
@@ -86,12 +183,18 @@ export async function createAssessmentSubmission({ userId, dayNum, day, recordin
     { merge: true }
   );
 
-  return shareId;
+  return {
+    shareCode,
+    dayNum,
+    recordingNum,
+    submissionDocId,
+    url: buildAssessUrl(shareCode, dayNum, recordingNum),
+  };
 }
 
-export async function getSubmission(shareId) {
-  if (!isFirebaseConfigured || !db) return null;
-  const snap = await getDoc(doc(db, SUBMISSIONS_PATH, shareId));
+export async function getSubmission(submissionDocId) {
+  if (!isFirebaseConfigured || !db || !submissionDocId) return null;
+  const snap = await getDoc(doc(db, SUBMISSIONS_PATH, submissionDocId));
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
@@ -106,7 +209,7 @@ function reviewAlreadyTakenError(submission) {
   return 'This submission is no longer accepting reviews.';
 }
 
-export async function submitAssessmentReview(shareId, { score, comment, assessorName }) {
+export async function submitAssessmentReview(submissionDocId, { score, comment, assessorName }) {
   if (!isFirebaseConfigured || !db) {
     throw new Error('Firebase is required to submit a review.');
   }
@@ -125,7 +228,7 @@ export async function submitAssessmentReview(shareId, { score, comment, assessor
     requiresRedo,
   };
 
-  const submissionRef = doc(db, SUBMISSIONS_PATH, shareId);
+  const submissionRef = doc(db, SUBMISSIONS_PATH, submissionDocId);
 
   return runTransaction(db, async (transaction) => {
     const submissionSnap = await transaction.get(submissionRef);
@@ -153,7 +256,7 @@ export async function submitAssessmentReview(shareId, { score, comment, assessor
       latestComment: review.comment,
       latestReviewedAt: review.reviewedAt,
       assessorName: review.assessorName,
-      submissionId: shareId,
+      submissionId: submissionDocId,
       status: requiresRedo ? 'redo_required' : 'approved',
       pendingSubmissionId: null,
     };
