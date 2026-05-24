@@ -22,6 +22,7 @@ function friendlyUploadError(message) {
 export default function DayRecorder({
   dayNum,
   recording,
+  isApproved,
   canRecord,
   uploading,
   locked,
@@ -189,15 +190,20 @@ export default function DayRecorder({
         <h3 className="text-sm font-bold uppercase tracking-wider text-taskly-ink">
           Record your practice
         </h3>
-        {isSaved && (
+        {isApproved ? (
           <span className="rounded-full bg-taskly-yellow px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-taskly-ink">
             Complete
           </span>
-        )}
+        ) : isSaved ? (
+          <span className="rounded-full bg-neutral-200 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-taskly-muted">
+            Saved
+          </span>
+        ) : null}
       </div>
 
       <p className="mt-1 text-base text-taskly-muted">
-        Record your exercise, listen back, then save when you&apos;re happy with it.
+        Record your exercise, listen back, save it, then share for assessment. A day is only
+        complete once an assessor scores it 5 or above.
       </p>
 
       {error && (

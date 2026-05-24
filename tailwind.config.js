@@ -5,7 +5,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
-        speakly: ['"Combo"', 'Georgia', 'Times New Roman', 'serif'],
+        speakly: ['Barlow', 'system-ui', 'sans-serif'],
       },
       colors: {
         taskly: {

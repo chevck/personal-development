@@ -4,6 +4,8 @@ import { phases } from './phases';
 import { useSpeechTrainingProgress } from '../../hooks/useSpeechTrainingProgress';
 import { getNextAllowedDay, isDayLocked } from '../../lib/speechTrainingProgress';
 import DayRecorder from './components/DayRecorder';
+import ShareForReview from './components/ShareForReview';
+import AssessmentFeedback from './components/AssessmentFeedback';
 
 const phaseLabels = { 1: 'The Brake', 2: 'The Shape', 3: 'The Platform' };
 
@@ -97,7 +99,7 @@ function ProgressRing({ pct }) {
   );
 }
 
-function DayGrid({ completed, activeDay, onSelectDay }) {
+function DayGrid({ completed, assessments, activeDay, onSelectDay }) {
   const allDays = phases.flatMap((p) => p.days);
   return (
     <div className="mt-4">
@@ -106,7 +108,7 @@ function DayGrid({ completed, activeDay, onSelectDay }) {
       </p>
       <div className="grid grid-cols-7 gap-1.5">
         {allDays.map((d) => {
-          const done = completed[d.day];
+          const done = completed[d.day] && !assessments?.[d.day]?.requiresRedo;
           const locked = isDayLocked(d.day, completed);
           const isActive = activeDay?.day === d.day;
           return (
@@ -143,6 +145,7 @@ function DayDetail({
   phase,
   completed,
   recording,
+  assessment,
   canRecord,
   uploading,
   locked,
@@ -150,7 +153,7 @@ function DayDetail({
   onSaveRecording,
   onClearProgress,
 }) {
-  const isDone = completed[day.day];
+  const isDone = completed[day.day] && !assessment?.requiresRedo;
   const pill = typePills[day.type] || 'bg-taskly-peach text-taskly-peach-text';
 
   return (
@@ -218,6 +221,7 @@ function DayDetail({
           <DayRecorder
             dayNum={day.day}
             recording={recording}
+            isApproved={isDone}
             canRecord={canRecord}
             uploading={uploading}
             locked={locked}
@@ -229,6 +233,10 @@ function DayDetail({
             onSaveRecording={onSaveRecording}
             onClearProgress={onClearProgress}
           />
+
+          <AssessmentFeedback assessment={assessment} />
+
+          <ShareForReview day={day} recording={recording} disabled={uploading} />
         </div>
       </article>
     </div>
@@ -241,6 +249,7 @@ export default function SpeechTraining() {
   const {
     completed,
     recordings,
+    assessments,
     saveRecording,
     clearDayProgress,
     uploadingDay,
@@ -251,7 +260,13 @@ export default function SpeechTraining() {
   } = useSpeechTrainingProgress();
 
   const phase = phases[activePhase];
-  const completedCount = Object.values(completed).filter(Boolean).length;
+  const completedCount = useMemo(() => {
+    let count = 0;
+    for (let d = 1; d <= 21; d += 1) {
+      if (completed[d] && !assessments[d]?.requiresRedo) count += 1;
+    }
+    return count;
+  }, [completed, assessments]);
   const progressPct = Math.round((completedCount / 21) * 100);
 
   const currentDayNum = useMemo(() => getNextAllowedDay(completed), [completed]);
@@ -298,7 +313,9 @@ export default function SpeechTraining() {
           </p>
           <ul className="mt-3 space-y-2">
             {phases.map((p, i) => {
-              const phaseDone = p.days.filter((d) => completed[d.day]).length;
+              const phaseDone = p.days.filter(
+                (d) => completed[d.day] && !assessments[d.day]?.requiresRedo
+              ).length;
               const isActive = activePhase === i && !activeDay;
               return (
                 <li key={p.id}>
@@ -327,6 +344,7 @@ export default function SpeechTraining() {
 
           <DayGrid
             completed={completed}
+            assessments={assessments}
             activeDay={activeDay}
             onSelectDay={(d) => {
               const match = findDayGlobally(d.day);
@@ -343,6 +361,7 @@ export default function SpeechTraining() {
               phase={detailPhase}
               completed={completed}
               recording={recordings[activeDay.day]}
+              assessment={assessments[activeDay.day]}
               canRecord={canRecord}
               uploading={uploadingDay === activeDay.day}
               locked={isDayLocked(activeDay.day, completed)}
@@ -362,7 +381,7 @@ export default function SpeechTraining() {
 
               <ul className="space-y-3">
                 {phase.days.map((day) => {
-                  const isDone = completed[day.day];
+                  const isDone = completed[day.day] && !assessments[day.day]?.requiresRedo;
                   const isCurrent = day.day === currentDayNum;
                   const locked = isDayLocked(day.day, completed);
                   const pill = typePills[day.type] || 'bg-taskly-peach text-taskly-peach-text';

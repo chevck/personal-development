@@ -5,5 +5,10 @@ service cloud.firestore {
     match /projects/speech-training/progress/{userId} {
       allow read, write: if true;
     }
+
+  // Assessment submissions — share links for teachers/coaches.
+    match /projects/speech-training/submissions/{shareId} {
+      allow read, write: if true;
+    }
   }
 }

@@ -1,3 +1,5 @@
+import { auth } from '../firebase/auth';
+
 const STORAGE_KEY = 'persona-dev-user-id';
 
 function createId() {
@@ -8,6 +10,10 @@ function createId() {
 }
 
 export function getUserId() {
+  if (auth?.currentUser?.uid) {
+    return auth.currentUser.uid;
+  }
+
   let id = localStorage.getItem(STORAGE_KEY);
   if (!id) {
     id = createId();

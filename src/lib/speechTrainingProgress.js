@@ -11,8 +11,8 @@ export function isDayLocked(dayNum, completed) {
   return next !== null && dayNum > next;
 }
 
-export function canSaveDay(dayNum, completed) {
+export function canSaveDay(dayNum, completed, hasRecording = false) {
+  if (hasRecording || completed[dayNum]) return true;
   if (dayNum === 1) return true;
-  if (completed[dayNum]) return true;
   return Boolean(completed[dayNum - 1]);
 }

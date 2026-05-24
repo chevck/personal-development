@@ -4,6 +4,8 @@ import { db, isFirebaseConfigured, isStorageConfigured } from '../firebase/confi
 import { getUserId } from '../lib/userId';
 import { canSaveDay } from '../lib/speechTrainingProgress';
 import { uploadDayRecording, deleteDayRecording } from '../lib/speechTrainingFirebase';
+import { normalizeDayMap, supersedePendingSubmission } from '../lib/speechTrainingAssessments';
+import { ensureFirebaseAuth } from '../firebase/auth';
 
 const LOCAL_KEY = 'speech-training-completed';
 const LOCAL_RECORDINGS_KEY = 'speech-training-recordings';
@@ -35,15 +37,6 @@ function saveLocalRecordings(recordings) {
   localStorage.setItem(LOCAL_RECORDINGS_KEY, JSON.stringify(recordings));
 }
 
-function normalizeDayMap(obj) {
-  if (!obj || typeof obj !== 'object') return {};
-  const out = {};
-  Object.entries(obj).forEach(([key, value]) => {
-    out[Number(key)] = value;
-  });
-  return out;
-}
-
 function progressRef() {
   const userId = getUserId();
   return doc(db, FIRESTORE_PATH, userId);
@@ -52,6 +45,7 @@ function progressRef() {
 export function useSpeechTrainingProgress() {
   const [completed, setCompleted] = useState(loadLocal);
   const [recordings, setRecordings] = useState(loadLocalRecordings);
+  const [assessments, setAssessments] = useState({});
   const [loading, setLoading] = useState(isFirebaseConfigured);
   const [uploadingDay, setUploadingDay] = useState(null);
   const [syncError, setSyncError] = useState(null);
@@ -62,52 +56,64 @@ export function useSpeechTrainingProgress() {
       return undefined;
     }
 
-    const ref = progressRef();
+    let unsubscribe = () => {};
 
-    const unsubscribe = onSnapshot(
-      ref,
-      (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          const remoteCompleted = normalizeDayMap(data.completed);
-          const remoteRecordings = normalizeDayMap(data.recordings);
-          setCompleted(remoteCompleted);
-          setRecordings(remoteRecordings);
-          saveLocal(remoteCompleted);
-          saveLocalRecordings(remoteRecordings);
-        }
-        setLoading(false);
-        setSyncError(null);
-      },
-      (error) => {
-        console.error('Firestore sync error:', error);
+    ensureFirebaseAuth()
+      .then(() => {
+        const ref = progressRef();
+
+        unsubscribe = onSnapshot(
+          ref,
+          (snapshot) => {
+            if (snapshot.exists()) {
+              const data = snapshot.data();
+              const remoteCompleted = normalizeDayMap(data.completed);
+              const remoteRecordings = normalizeDayMap(data.recordings);
+              const remoteAssessments = normalizeDayMap(data.assessments);
+              setCompleted(remoteCompleted);
+              setRecordings(remoteRecordings);
+              setAssessments(remoteAssessments);
+              saveLocal(remoteCompleted);
+              saveLocalRecordings(remoteRecordings);
+            }
+            setLoading(false);
+            setSyncError(null);
+          },
+          (error) => {
+            console.error('Firestore sync error:', error);
+            setSyncError(error.message);
+            setLoading(false);
+          }
+        );
+
+        getDoc(ref).then((snapshot) => {
+          if (!snapshot.exists()) {
+            const localCompleted = loadLocal();
+            const localRecordings = loadLocalRecordings();
+            if (
+              Object.keys(localCompleted).length > 0 ||
+              Object.keys(localRecordings).length > 0
+            ) {
+              setDoc(
+                ref,
+                {
+                  completed: localCompleted,
+                  recordings: localRecordings,
+                  updatedAt: new Date().toISOString(),
+                },
+                { merge: true }
+              );
+            }
+          }
+        });
+      })
+      .catch((error) => {
+        console.error('Firebase auth error:', error);
         setSyncError(error.message);
         setLoading(false);
-      }
-    );
+      });
 
-    getDoc(ref).then((snapshot) => {
-      if (!snapshot.exists()) {
-        const localCompleted = loadLocal();
-        const localRecordings = loadLocalRecordings();
-        if (
-          Object.keys(localCompleted).length > 0 ||
-          Object.keys(localRecordings).length > 0
-        ) {
-          setDoc(
-            ref,
-            {
-              completed: localCompleted,
-              recordings: localRecordings,
-              updatedAt: new Date().toISOString(),
-            },
-            { merge: true }
-          );
-        }
-      }
-    });
-
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
   const saveRecording = useCallback(async (dayNum, blob, durationMs) => {
@@ -117,7 +123,7 @@ export function useSpeechTrainingProgress() {
       );
     }
 
-    if (!canSaveDay(dayNum, completed)) {
+    if (!canSaveDay(dayNum, completed, Boolean(recordings[dayNum]))) {
       throw new Error(`Complete Day ${dayNum - 1} before saving Day ${dayNum}.`);
     }
 
@@ -137,16 +143,26 @@ export function useSpeechTrainingProgress() {
         durationMs,
       };
 
-      setCompleted((prev) => {
-        const next = { ...prev, [dayNum]: true };
-        saveLocal(next);
-        return next;
-      });
       setRecordings((prev) => {
         const next = { ...prev, [dayNum]: recording };
         saveLocalRecordings(next);
         return next;
       });
+      setCompleted((prev) => {
+        const next = { ...prev };
+        delete next[dayNum];
+        saveLocal(next);
+        return next;
+      });
+      setAssessments((prev) => ({
+        ...prev,
+        [dayNum]: {
+          ...(prev[dayNum] || {}),
+          requiresRedo: false,
+          status: 'awaiting_share',
+          pendingSubmissionId: null,
+        },
+      }));
 
       if (isFirebaseConfigured && db) {
         const ref = progressRef();
@@ -157,16 +173,35 @@ export function useSpeechTrainingProgress() {
         const currentRecordings = snap.exists()
           ? normalizeDayMap(snap.data().recordings)
           : {};
+        const currentAssessments = snap.exists()
+          ? normalizeDayMap(snap.data().assessments)
+          : {};
+
+        delete currentCompleted[dayNum];
+
+        const oldPendingId = currentAssessments[dayNum]?.pendingSubmissionId;
+        if (oldPendingId) {
+          await supersedePendingSubmission(oldPendingId);
+        }
+
+        currentAssessments[dayNum] = {
+          requiresRedo: false,
+          status: 'awaiting_share',
+          pendingSubmissionId: null,
+        };
 
         await setDoc(
           ref,
           {
-            completed: { ...currentCompleted, [dayNum]: true },
+            completed: currentCompleted,
             recordings: { ...currentRecordings, [dayNum]: recording },
+            assessments: currentAssessments,
             updatedAt: new Date().toISOString(),
           },
           { merge: true }
         );
+
+        setAssessments(currentAssessments);
       }
 
       return recording;
@@ -210,19 +245,23 @@ export function useSpeechTrainingProgress() {
       if (snap.exists()) {
         const nextCompleted = normalizeDayMap(snap.data().completed);
         const nextRecordings = normalizeDayMap(snap.data().recordings);
+        const nextAssessments = normalizeDayMap(snap.data().assessments);
         daysToClear.forEach((d) => {
           delete nextCompleted[d];
           delete nextRecordings[d];
+          delete nextAssessments[d];
         });
         await setDoc(
           ref,
           {
             completed: nextCompleted,
             recordings: nextRecordings,
+            assessments: nextAssessments,
             updatedAt: new Date().toISOString(),
           },
           { merge: true }
         );
+        setAssessments(nextAssessments);
       }
     }
   }, [completed, recordings]);
@@ -254,6 +293,7 @@ export function useSpeechTrainingProgress() {
   return {
     completed,
     recordings,
+    assessments,
     toggleComplete,
     saveRecording,
     clearDayProgress,
