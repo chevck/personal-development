@@ -4,8 +4,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
-        speakly: ['Barlow', 'system-ui', 'sans-serif'],
+        sans: ['Delius', 'cursive'],
+        speakly: ['Delius', 'cursive'],
       },
       colors: {
         taskly: {
