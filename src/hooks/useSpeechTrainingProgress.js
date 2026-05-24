@@ -1,22 +1,32 @@
-import { useCallback, useEffect, useState } from 'react';
-import { doc, getDoc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
-import { useAuth } from '../contexts/AuthContext';
-import { db, isFirebaseConfigured, isStorageConfigured } from '../firebase/config';
-import { getUserId } from '../lib/userId';
+import { useCallback, useEffect, useState } from "react";
+import { doc, getDoc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  db,
+  isFirebaseConfigured,
+  isStorageConfigured,
+} from "../firebase/config";
+import { getUserId } from "../lib/userId";
 import {
   canSaveDay,
   formatDateKey,
   getProgramStartDateFromUser,
   getSaveDayError,
-} from '../lib/speechTrainingProgress';
-import { useProgramClock } from './useProgramClock';
-import { uploadDayRecording, deleteDayRecording } from '../lib/speechTrainingFirebase';
-import { normalizeDayMap, supersedePendingSubmission } from '../lib/speechTrainingAssessments';
+} from "../lib/speechTrainingProgress";
+import { useProgramClock } from "./useProgramClock";
+import {
+  uploadDayRecording,
+  deleteDayRecording,
+} from "../lib/speechTrainingFirebase";
+import {
+  normalizeDayMap,
+  supersedePendingSubmission,
+} from "../lib/speechTrainingAssessments";
 
-const LOCAL_KEY = 'speech-training-completed';
-const LOCAL_RECORDINGS_KEY = 'speech-training-recordings';
-const LOCAL_PROGRAM_START_KEY = 'speech-training-program-start';
-const FIRESTORE_PATH = 'projects/speech-training/progress';
+const LOCAL_KEY = "speech-training-completed";
+const LOCAL_RECORDINGS_KEY = "speech-training-recordings";
+const LOCAL_PROGRAM_START_KEY = "speech-training-program-start";
+const FIRESTORE_PATH = "projects/speech-training/progress";
 
 function loadLocal() {
   try {
@@ -67,7 +77,8 @@ export function useSpeechTrainingProgress() {
   const [syncError, setSyncError] = useState(null);
 
   const effectiveProgramStart =
-    programStartDate || (user ? getProgramStartDateFromUser(user) : formatDateKey(now));
+    programStartDate ||
+    (user ? getProgramStartDateFromUser(user) : formatDateKey(now));
 
   useEffect(() => {
     if (authLoading) {
@@ -92,7 +103,10 @@ export function useSpeechTrainingProgress() {
           const remoteAssessments = normalizeDayMap(data.assessments);
           if (data.programStartDate) {
             setProgramStartDate(data.programStartDate);
-            localStorage.setItem(LOCAL_PROGRAM_START_KEY, data.programStartDate);
+            localStorage.setItem(
+              LOCAL_PROGRAM_START_KEY,
+              data.programStartDate,
+            );
           }
           setCompleted(remoteCompleted);
           setRecordings(remoteRecordings);
@@ -104,10 +118,10 @@ export function useSpeechTrainingProgress() {
         setSyncError(null);
       },
       (error) => {
-        console.error('Firestore sync error:', error);
+        console.error("Firestore sync error:", error);
         setSyncError(error.message);
         setLoading(false);
-      }
+      },
     );
 
     getDoc(ref).then(async (snapshot) => {
@@ -128,7 +142,7 @@ export function useSpeechTrainingProgress() {
             recordings: localRecordings,
             updatedAt: new Date().toISOString(),
           },
-          { merge: true }
+          { merge: true },
         );
         return;
       }
@@ -139,7 +153,7 @@ export function useSpeechTrainingProgress() {
         await setDoc(
           ref,
           { programStartDate: startDate, updatedAt: new Date().toISOString() },
-          { merge: true }
+          { merge: true },
         );
       }
     });
@@ -147,173 +161,185 @@ export function useSpeechTrainingProgress() {
     return () => unsubscribe();
   }, [user, authLoading]);
 
-  const saveRecording = useCallback(async (dayNum, blob, durationMs) => {
-    if (!isStorageConfigured) {
-      throw new Error(
-        'Recording requires Firebase Storage. Enable Storage in the Firebase console and set REACT_APP_FIREBASE_STORAGE_BUCKET.'
-      );
-    }
+  const saveRecording = useCallback(
+    async (dayNum, blob, durationMs) => {
+      if (!isStorageConfigured) {
+        throw new Error(
+          "Recording requires Firebase Storage. Enable Storage in the Firebase console and set REACT_APP_FIREBASE_STORAGE_BUCKET.",
+        );
+      }
 
-    if (
-      !canSaveDay(
-        dayNum,
-        completed,
-        assessments,
-        Boolean(recordings[dayNum]),
-        effectiveProgramStart,
-        now
-      )
-    ) {
-      throw new Error(
-        getSaveDayError(
+      if (
+        !canSaveDay(
           dayNum,
           completed,
           assessments,
           Boolean(recordings[dayNum]),
           effectiveProgramStart,
-          now
+          now,
         )
-      );
-    }
-
-    setUploadingDay(dayNum);
-    setSyncError(null);
-
-    try {
-      const previous = recordings[dayNum];
-      if (previous?.storagePath) {
-        await deleteDayRecording(previous.storagePath);
+      ) {
+        throw new Error(
+          getSaveDayError(
+            dayNum,
+            completed,
+            assessments,
+            Boolean(recordings[dayNum]),
+            effectiveProgramStart,
+            now,
+          ),
+        );
       }
 
-      const fileMeta = await uploadDayRecording(dayNum, blob);
-      const recording = {
-        ...fileMeta,
-        recordedAt: new Date().toISOString(),
-        durationMs,
-      };
+      setUploadingDay(dayNum);
+      setSyncError(null);
 
-      setRecordings((prev) => {
-        const next = { ...prev, [dayNum]: recording };
-        saveLocalRecordings(next);
-        return next;
-      });
+      try {
+        const previous = recordings[dayNum];
+        if (previous?.storagePath) {
+          await deleteDayRecording(previous.storagePath);
+        }
+
+        const fileMeta = await uploadDayRecording(dayNum, blob);
+        const recording = {
+          ...fileMeta,
+          recordedAt: new Date().toISOString(),
+          durationMs,
+        };
+
+        setRecordings((prev) => {
+          const next = { ...prev, [dayNum]: recording };
+          saveLocalRecordings(next);
+          return next;
+        });
+        setCompleted((prev) => {
+          const next = { ...prev };
+          delete next[dayNum];
+          saveLocal(next);
+          return next;
+        });
+        setAssessments((prev) => ({
+          ...prev,
+          [dayNum]: {
+            ...(prev[dayNum] || {}),
+            requiresRedo: false,
+            status: "awaiting_share",
+            pendingSubmissionId: null,
+          },
+        }));
+
+        if (isFirebaseConfigured && db) {
+          const ref = progressRef();
+          const snap = await getDoc(ref);
+          const currentCompleted = snap.exists()
+            ? normalizeDayMap(snap.data().completed)
+            : {};
+          const currentRecordings = snap.exists()
+            ? normalizeDayMap(snap.data().recordings)
+            : {};
+          const currentAssessments = snap.exists()
+            ? normalizeDayMap(snap.data().assessments)
+            : {};
+
+          delete currentCompleted[dayNum];
+
+          const oldPendingId = currentAssessments[dayNum]?.pendingSubmissionId;
+          if (oldPendingId) {
+            await supersedePendingSubmission(oldPendingId);
+          }
+
+          currentAssessments[dayNum] = {
+            requiresRedo: false,
+            status: "awaiting_share",
+            pendingSubmissionId: null,
+          };
+
+          await setDoc(
+            ref,
+            {
+              completed: currentCompleted,
+              recordings: { ...currentRecordings, [dayNum]: recording },
+              assessments: currentAssessments,
+              updatedAt: new Date().toISOString(),
+            },
+            { merge: true },
+          );
+
+          setAssessments(currentAssessments);
+        }
+
+        return recording;
+      } catch (error) {
+        console.error("Failed to save recording:", error);
+        setSyncError(error.message);
+        throw error;
+      } finally {
+        setUploadingDay(null);
+      }
+    },
+    [completed, recordings, assessments, effectiveProgramStart, now],
+  );
+
+  const clearDayProgress = useCallback(
+    async (dayNum) => {
+      const daysToClear = [];
+      for (let d = dayNum; d <= 21; d += 1) {
+        if (completed[d] || recordings[d]) daysToClear.push(d);
+      }
+
+      const filesToDelete = daysToClear
+        .map((d) => recordings[d]?.storagePath)
+        .filter(Boolean);
+
       setCompleted((prev) => {
         const next = { ...prev };
-        delete next[dayNum];
+        daysToClear.forEach((d) => delete next[d]);
         saveLocal(next);
         return next;
       });
-      setAssessments((prev) => ({
-        ...prev,
-        [dayNum]: {
-          ...(prev[dayNum] || {}),
-          requiresRedo: false,
-          status: 'awaiting_share',
-          pendingSubmissionId: null,
-        },
-      }));
+      setRecordings((prev) => {
+        const next = { ...prev };
+        daysToClear.forEach((d) => delete next[d]);
+        saveLocalRecordings(next);
+        return next;
+      });
+
+      await Promise.all(
+        filesToDelete.map((path) =>
+          deleteDayRecording(path).catch(console.error),
+        ),
+      );
 
       if (isFirebaseConfigured && db) {
         const ref = progressRef();
         const snap = await getDoc(ref);
-        const currentCompleted = snap.exists()
-          ? normalizeDayMap(snap.data().completed)
-          : {};
-        const currentRecordings = snap.exists()
-          ? normalizeDayMap(snap.data().recordings)
-          : {};
-        const currentAssessments = snap.exists()
-          ? normalizeDayMap(snap.data().assessments)
-          : {};
-
-        delete currentCompleted[dayNum];
-
-        const oldPendingId = currentAssessments[dayNum]?.pendingSubmissionId;
-        if (oldPendingId) {
-          await supersedePendingSubmission(oldPendingId);
+        if (snap.exists()) {
+          const nextCompleted = normalizeDayMap(snap.data().completed);
+          const nextRecordings = normalizeDayMap(snap.data().recordings);
+          const nextAssessments = normalizeDayMap(snap.data().assessments);
+          daysToClear.forEach((d) => {
+            delete nextCompleted[d];
+            delete nextRecordings[d];
+            delete nextAssessments[d];
+          });
+          await setDoc(
+            ref,
+            {
+              completed: nextCompleted,
+              recordings: nextRecordings,
+              assessments: nextAssessments,
+              updatedAt: new Date().toISOString(),
+            },
+            { merge: true },
+          );
+          setAssessments(nextAssessments);
         }
-
-        currentAssessments[dayNum] = {
-          requiresRedo: false,
-          status: 'awaiting_share',
-          pendingSubmissionId: null,
-        };
-
-        await setDoc(
-          ref,
-          {
-            completed: currentCompleted,
-            recordings: { ...currentRecordings, [dayNum]: recording },
-            assessments: currentAssessments,
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        );
-
-        setAssessments(currentAssessments);
       }
-
-      return recording;
-    } catch (error) {
-      console.error('Failed to save recording:', error);
-      setSyncError(error.message);
-      throw error;
-    } finally {
-      setUploadingDay(null);
-    }
-  }, [completed, recordings, assessments, effectiveProgramStart, now]);
-
-  const clearDayProgress = useCallback(async (dayNum) => {
-    const daysToClear = [];
-    for (let d = dayNum; d <= 21; d += 1) {
-      if (completed[d] || recordings[d]) daysToClear.push(d);
-    }
-
-    const filesToDelete = daysToClear
-      .map((d) => recordings[d]?.storagePath)
-      .filter(Boolean);
-
-    setCompleted((prev) => {
-      const next = { ...prev };
-      daysToClear.forEach((d) => delete next[d]);
-      saveLocal(next);
-      return next;
-    });
-    setRecordings((prev) => {
-      const next = { ...prev };
-      daysToClear.forEach((d) => delete next[d]);
-      saveLocalRecordings(next);
-      return next;
-    });
-
-    await Promise.all(filesToDelete.map((path) => deleteDayRecording(path).catch(console.error)));
-
-    if (isFirebaseConfigured && db) {
-      const ref = progressRef();
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        const nextCompleted = normalizeDayMap(snap.data().completed);
-        const nextRecordings = normalizeDayMap(snap.data().recordings);
-        const nextAssessments = normalizeDayMap(snap.data().assessments);
-        daysToClear.forEach((d) => {
-          delete nextCompleted[d];
-          delete nextRecordings[d];
-          delete nextAssessments[d];
-        });
-        await setDoc(
-          ref,
-          {
-            completed: nextCompleted,
-            recordings: nextRecordings,
-            assessments: nextAssessments,
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        );
-        setAssessments(nextAssessments);
-      }
-    }
-  }, [completed, recordings, assessments, effectiveProgramStart, now]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [completed, recordings, assessments, effectiveProgramStart, now],
+  );
 
   const toggleComplete = useCallback(
     async (dayNum) => {
@@ -336,7 +362,7 @@ export function useSpeechTrainingProgress() {
         }
       }
     },
-    [completed, clearDayProgress]
+    [completed, clearDayProgress],
   );
 
   return {
