@@ -1,8 +1,11 @@
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  signInWithEmailAndPassword,
+} from 'firebase/auth';
 import { app, isFirebaseConfigured } from './config';
 
 let auth = null;
-let signInPromise = null;
 
 if (isFirebaseConfigured && app) {
   auth = getAuth(app);
@@ -10,44 +13,83 @@ if (isFirebaseConfigured && app) {
 
 export { auth };
 
-export const isAuthConfigured = Boolean(
-  isFirebaseConfigured &&
-    process.env.REACT_APP_FIREBASE_EMAIL &&
-    process.env.REACT_APP_FIREBASE_PASSWORD
-);
+const MIN_PASSWORD_LENGTH = 6;
 
-export async function ensureFirebaseAuth() {
+export function normalizeEmail(email) {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+    throw new Error('Enter a valid email address.');
+  }
+  return normalized;
+}
+
+export function validatePassword(password, { confirm } = {}) {
+  if (!password || password.length < MIN_PASSWORD_LENGTH) {
+    throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+  }
+  if (confirm !== undefined && password !== confirm) {
+    throw new Error('Passwords do not match.');
+  }
+}
+
+function formatAuthError(error) {
+  switch (error.code) {
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists. Sign in instead.';
+    case 'auth/invalid-email':
+      return 'Enter a valid email address.';
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+      return 'Incorrect email or password.';
+    case 'auth/user-not-found':
+      return 'No account found for this email. Create an account instead.';
+    case 'auth/weak-password':
+      return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+    case 'auth/too-many-requests':
+      return 'Too many attempts. Wait a moment and try again.';
+    default:
+      return error.message || 'Authentication failed.';
+  }
+}
+
+export async function signInWithPassword(email, password) {
   if (!auth) {
     throw new Error('Firebase is not configured.');
   }
 
-  if (auth.currentUser) {
-    return auth.currentUser;
+  try {
+    const normalized = normalizeEmail(email);
+    validatePassword(password);
+    const credential = await signInWithEmailAndPassword(auth, normalized, password);
+    return credential.user;
+  } catch (error) {
+    if (error.message && !error.code) throw error;
+    throw new Error(formatAuthError(error));
+  }
+}
+
+export async function registerWithPassword(email, password) {
+  if (!auth) {
+    throw new Error('Firebase is not configured.');
   }
 
-  const email = process.env.REACT_APP_FIREBASE_EMAIL;
-  const password = process.env.REACT_APP_FIREBASE_PASSWORD;
-
-  if (!email || !password) {
-    throw new Error(
-      'Set REACT_APP_FIREBASE_EMAIL and REACT_APP_FIREBASE_PASSWORD in .env, then restart the dev server.'
-    );
+  try {
+    const normalized = normalizeEmail(email);
+    validatePassword(password);
+    const credential = await createUserWithEmailAndPassword(auth, normalized, password);
+    return credential.user;
+  } catch (error) {
+    if (error.message && !error.code) throw error;
+    throw new Error(formatAuthError(error));
   }
+}
 
-  if (!signInPromise) {
-    signInPromise = signInWithEmailAndPassword(auth, email, password)
-      .then((credential) => credential.user)
-      .catch((error) => {
-        signInPromise = null;
-        if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-          throw new Error('Firebase sign-in failed. Check REACT_APP_FIREBASE_EMAIL and REACT_APP_FIREBASE_PASSWORD.');
-        }
-        if (error.code === 'auth/user-not-found') {
-          throw new Error('Firebase user not found. Create this email in Firebase Console → Authentication.');
-        }
-        throw new Error(error.message || 'Firebase sign-in failed.');
-      });
+export async function requireAuthUser() {
+  if (!auth) {
+    throw new Error('Firebase is not configured.');
   }
-
-  return signInPromise;
+  if (!auth.currentUser) {
+    throw new Error('You must be signed in to continue.');
+  }
+  return auth.currentUser;
 }

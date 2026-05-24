@@ -1,12 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Progress docs use anonymous local user IDs — tighten before production.
     match /projects/speech-training/progress/{userId} {
-      allow read, write: if true;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-  // Assessment submissions — share links for teachers/coaches.
+    // Assessment submissions — share links for teachers/coaches (no learner login).
     match /projects/speech-training/submissions/{shareId} {
       allow read, write: if true;
     }

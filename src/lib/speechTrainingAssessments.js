@@ -1,6 +1,6 @@
 import { doc, getDoc, runTransaction, setDoc } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase/config';
-import { ensureFirebaseAuth } from '../firebase/auth';
+import { requireAuthUser } from '../firebase/auth';
 
 const PROGRESS_PATH = 'projects/speech-training/progress';
 const SUBMISSIONS_PATH = 'projects/speech-training/submissions';
@@ -43,7 +43,7 @@ export async function createAssessmentSubmission({ userId, dayNum, day, recordin
     throw new Error('Firebase is required to share recordings for assessment.');
   }
 
-  await ensureFirebaseAuth();
+  await requireAuthUser();
 
   const progressRef = doc(db, PROGRESS_PATH, userId);
   const progressSnap = await getDoc(progressRef);

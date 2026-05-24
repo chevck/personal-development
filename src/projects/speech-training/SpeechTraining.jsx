@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { phases } from './phases';
 import { useSpeechTrainingProgress } from '../../hooks/useSpeechTrainingProgress';
 import { getNextAllowedDay, isDayLocked } from '../../lib/speechTrainingProgress';
@@ -258,6 +259,8 @@ export default function SpeechTraining() {
     isSynced,
     canRecord,
   } = useSpeechTrainingProgress();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const phase = phases[activePhase];
   const completedCount = useMemo(() => {
@@ -301,12 +304,31 @@ export default function SpeechTraining() {
       <div className="mx-auto flex min-h-screen max-w-[1280px] flex-col lg:flex-row">
         {/* Left sidebar */}
         <aside className="w-full shrink-0 border-b border-taskly-border bg-white p-6 lg:w-72 lg:border-b-0 lg:border-r lg:p-8">
-          <Link to="/" className="mb-8 flex items-center gap-2.5 no-underline">
+          <Link to="/" className="mb-6 flex items-center gap-2.5 no-underline">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-taskly-yellow text-lg font-bold text-taskly-ink">
               +
             </span>
             <span className="text-2xl font-bold text-taskly-ink">speakly</span>
           </Link>
+
+          {user?.email && (
+            <div className="mb-6 rounded-2xl bg-taskly-surface px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-taskly-muted">
+                Your account
+              </p>
+              <p className="mt-1 truncate text-sm font-medium text-taskly-ink">{user.email}</p>
+              <button
+                type="button"
+                onClick={async () => {
+                  await signOut();
+                  navigate('/speech-training/login');
+                }}
+                className="mt-2 text-sm font-semibold text-taskly-peach-text hover:underline"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
 
           <p className="text-sm font-semibold uppercase tracking-wider text-taskly-muted">
             Phases

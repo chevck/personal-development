@@ -1,6 +1,6 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage, isStorageConfigured } from '../firebase/config';
-import { ensureFirebaseAuth } from '../firebase/auth';
+import { requireAuthUser } from '../firebase/auth';
 import { getUserId } from './userId';
 
 export function buildRecordingPath(dayNum) {
@@ -13,7 +13,7 @@ export async function uploadDayRecording(dayNum, blob) {
     throw new Error('Firebase Storage is not configured. Add REACT_APP_FIREBASE_STORAGE_BUCKET to .env');
   }
 
-  await ensureFirebaseAuth();
+  await requireAuthUser();
 
   const storagePath = buildRecordingPath(dayNum);
   const storageRef = ref(storage, storagePath);
@@ -32,7 +32,7 @@ export async function uploadDayRecording(dayNum, blob) {
 
 export async function deleteDayRecording(storagePath) {
   if (!isStorageConfigured || !storage || !storagePath) return;
-  await ensureFirebaseAuth();
+  await requireAuthUser();
   try {
     await deleteObject(ref(storage, storagePath));
   } catch (error) {
