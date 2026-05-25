@@ -1,48 +1,54 @@
-import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { phases } from './phases';
-import { useSpeechTrainingProgress } from '../../hooks/useSpeechTrainingProgress';
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import SpeaklyLogo from "../../components/SpeaklyLogo";
+import { useAuth } from "../../contexts/AuthContext";
+import { phases } from "./phases";
+import { useSpeechTrainingProgress } from "../../hooks/useSpeechTrainingProgress";
 import {
   getDayLockMessage,
   getNextAllowedDay,
   getWaitingForNextDayMessage,
   isDayLocked,
-} from '../../lib/speechTrainingProgress';
-import DayRecorder from './components/DayRecorder';
-import ShareForReview from './components/ShareForReview';
-import AssessmentFeedback from './components/AssessmentFeedback';
+} from "../../lib/speechTrainingProgress";
+import DayRecorder from "./components/DayRecorder";
+import ShareForReview from "./components/ShareForReview";
+import AssessmentFeedback from "./components/AssessmentFeedback";
 
-const phaseLabels = { 1: 'The Brake', 2: 'The Shape', 3: 'The Platform' };
+const phaseLabels = { 1: "The Brake", 2: "The Shape", 3: "The Platform" };
 
 const typePills = {
-  Awareness: 'bg-amber-50 text-amber-700',
-  Articulation: 'bg-orange-50 text-taskly-peach-text',
-  Pacing: 'bg-violet-50 text-violet-700',
-  Rhythm: 'bg-rose-50 text-rose-600',
-  Muscle: 'bg-sky-50 text-sky-700',
-  Reflection: 'bg-yellow-50 text-yellow-800',
-  Clarity: 'bg-emerald-50 text-emerald-700',
-  Structure: 'bg-fuchsia-50 text-fuchsia-700',
-  Emotion: 'bg-orange-50 text-orange-700',
-  Flow: 'bg-cyan-50 text-cyan-700',
-  Feedback: 'bg-lime-50 text-lime-700',
-  Review: 'bg-amber-50 text-amber-800',
-  Delivery: 'bg-violet-50 text-violet-700',
-  Impact: 'bg-teal-50 text-teal-700',
-  Physical: 'bg-stone-100 text-stone-700',
-  Spontaneity: 'bg-red-50 text-red-600',
-  Expression: 'bg-indigo-50 text-indigo-700',
-  Performance: 'bg-pink-50 text-pink-700',
+  Awareness: "bg-amber-50 text-amber-700",
+  Articulation: "bg-orange-50 text-taskly-peach-text",
+  Pacing: "bg-violet-50 text-violet-700",
+  Rhythm: "bg-rose-50 text-rose-600",
+  Muscle: "bg-sky-50 text-sky-700",
+  Reflection: "bg-yellow-50 text-yellow-800",
+  Clarity: "bg-emerald-50 text-emerald-700",
+  Structure: "bg-fuchsia-50 text-fuchsia-700",
+  Emotion: "bg-orange-50 text-orange-700",
+  Flow: "bg-cyan-50 text-cyan-700",
+  Feedback: "bg-lime-50 text-lime-700",
+  Review: "bg-amber-50 text-amber-800",
+  Delivery: "bg-violet-50 text-violet-700",
+  Impact: "bg-teal-50 text-teal-700",
+  Physical: "bg-stone-100 text-stone-700",
+  Spontaneity: "bg-red-50 text-red-600",
+  Expression: "bg-indigo-50 text-indigo-700",
+  Performance: "bg-pink-50 text-pink-700",
 };
 
-function CheckIcon({ className = 'h-5 w-5' }) {
+function CheckIcon({ className = "h-5 w-5" }) {
   return (
-    <svg className={className} viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+    <svg
+      className={className}
+      viewBox='0 0 20 20'
+      fill='currentColor'
+      aria-hidden
+    >
       <path
-        fillRule="evenodd"
-        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-        clipRule="evenodd"
+        fillRule='evenodd'
+        d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+        clipRule='evenodd'
       />
     </svg>
   );
@@ -50,28 +56,28 @@ function CheckIcon({ className = 'h-5 w-5' }) {
 
 function DayIcon({ type }) {
   const icons = {
-    Awareness: '🎯',
-    Articulation: '🗣️',
-    Pacing: '⏱️',
-    Rhythm: '🎵',
-    Muscle: '💪',
-    Reflection: '📝',
-    Clarity: '💡',
-    Structure: '📐',
-    Emotion: '❤️',
-    Flow: '〰️',
-    Feedback: '👂',
-    Review: '🔍',
-    Delivery: '🎤',
-    Impact: '⚡',
-    Physical: '🧍',
-    Spontaneity: '🎲',
-    Expression: '✨',
-    Performance: '🌟',
+    Awareness: "🎯",
+    Articulation: "🗣️",
+    Pacing: "⏱️",
+    Rhythm: "🎵",
+    Muscle: "💪",
+    Reflection: "📝",
+    Clarity: "💡",
+    Structure: "📐",
+    Emotion: "❤️",
+    Flow: "〰️",
+    Feedback: "👂",
+    Review: "🔍",
+    Delivery: "🎤",
+    Impact: "⚡",
+    Physical: "🧍",
+    Spontaneity: "🎲",
+    Expression: "✨",
+    Performance: "🌟",
   };
   return (
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-lg shadow-soft">
-      {icons[type] || '📋'}
+    <span className='flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-lg shadow-soft'>
+      {icons[type] || "📋"}
     </span>
   );
 }
@@ -81,25 +87,34 @@ function ProgressRing({ pct }) {
   const c = 2 * Math.PI * r;
   const offset = c - (pct / 100) * c;
   return (
-    <div className="relative h-24 w-24">
-      <svg className="-rotate-90" viewBox="0 0 88 88" aria-hidden>
-        <circle cx="44" cy="44" r={r} fill="none" stroke="#F0F0F0" strokeWidth="8" />
+    <div className='relative h-24 w-24'>
+      <svg className='-rotate-90' viewBox='0 0 88 88' aria-hidden>
         <circle
-          cx="44"
-          cy="44"
+          cx='44'
+          cy='44'
           r={r}
-          fill="none"
-          stroke="#F5D76E"
-          strokeWidth="8"
-          strokeLinecap="round"
+          fill='none'
+          stroke='#F0F0F0'
+          strokeWidth='8'
+        />
+        <circle
+          cx='44'
+          cy='44'
+          r={r}
+          fill='none'
+          stroke='#F5D76E'
+          strokeWidth='8'
+          strokeLinecap='round'
           strokeDasharray={c}
           strokeDashoffset={offset}
-          className="transition-all duration-500"
+          className='transition-all duration-500'
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold text-taskly-ink">{pct}%</span>
-        <span className="text-xs uppercase tracking-wider text-taskly-muted">done</span>
+      <div className='absolute inset-0 flex flex-col items-center justify-center'>
+        <span className='text-2xl font-bold text-taskly-ink'>{pct}%</span>
+        <span className='text-xs uppercase tracking-wider text-taskly-muted'>
+          done
+        </span>
       </div>
     </div>
   );
@@ -115,35 +130,53 @@ function DayGrid({
 }) {
   const allDays = phases.flatMap((p) => p.days);
   return (
-    <div className="mt-4">
-      <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-taskly-muted">
+    <div className='mt-4'>
+      <p className='mb-3 text-sm font-semibold uppercase tracking-wider text-taskly-muted'>
         21-day track
       </p>
-      <div className="grid grid-cols-7 gap-1.5">
+      <div className='grid grid-cols-7 gap-1.5'>
         {allDays.map((d) => {
           const done = completed[d.day] && !assessments?.[d.day]?.requiresRedo;
-          const locked = isDayLocked(d.day, completed, assessments, programStartDate, now);
+          const locked = isDayLocked(
+            d.day,
+            completed,
+            assessments,
+            programStartDate,
+            now,
+          );
           const lockMessage = locked
-            ? getDayLockMessage(d.day, completed, assessments, programStartDate, now)
+            ? getDayLockMessage(
+                d.day,
+                completed,
+                assessments,
+                programStartDate,
+                now,
+              )
             : null;
           const isActive = activeDay?.day === d.day;
           return (
             <button
               key={d.day}
-              type="button"
+              type='button'
               onClick={() => onSelectDay(d)}
               className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition ${
                 done
-                  ? 'bg-taskly-yellow text-taskly-ink'
+                  ? "bg-taskly-yellow text-taskly-ink"
                   : isActive
-                    ? 'bg-taskly-ink text-white ring-2 ring-taskly-yellow ring-offset-1'
+                    ? "bg-taskly-ink text-white ring-2 ring-taskly-yellow ring-offset-1"
                     : locked
-                      ? 'bg-neutral-100 text-neutral-300'
-                      : 'bg-white text-taskly-muted hover:bg-neutral-100'
+                      ? "bg-neutral-100 text-neutral-300"
+                      : "bg-white text-taskly-muted hover:bg-neutral-100"
               }`}
               title={locked ? lockMessage : `Day ${d.day}: ${d.title}`}
             >
-              {done ? <CheckIcon className="h-3.5 w-3.5" /> : locked ? '🔒' : d.day}
+              {done ? (
+                <CheckIcon className='h-3.5 w-3.5' />
+              ) : locked ? (
+                "🔒"
+              ) : (
+                d.day
+              )}
             </button>
           );
         })}
@@ -167,68 +200,74 @@ function DayDetail({
   onClearProgress,
 }) {
   const isDone = completed[day.day] && !assessment?.requiresRedo;
-  const pill = typePills[day.type] || 'bg-taskly-peach text-taskly-peach-text';
+  const pill = typePills[day.type] || "bg-taskly-peach text-taskly-peach-text";
 
   return (
     <div>
       <button
-        type="button"
+        type='button'
         onClick={onBack}
-        className="mb-6 flex items-center gap-1 text-base font-medium text-taskly-muted transition hover:text-taskly-ink"
+        className='mb-6 flex items-center gap-1 text-base font-medium text-taskly-muted transition hover:text-taskly-ink'
       >
         <span aria-hidden>‹</span> Back to schedule
       </button>
 
-      <article className="overflow-hidden rounded-3xl bg-white shadow-card">
-        <div className={`p-8 ${isDone ? 'bg-taskly-yellow' : 'bg-white'}`}>
-          <div className="flex items-start justify-between gap-4">
+      <article className='overflow-hidden rounded-3xl bg-white shadow-card'>
+        <div className={`p-8 ${isDone ? "bg-taskly-yellow" : "bg-white"}`}>
+          <div className='flex items-start justify-between gap-4'>
             <div>
               <span
                 className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${pill}`}
               >
                 {day.type}
               </span>
-              <p className="mt-3 text-base font-medium text-taskly-muted">
+              <p className='mt-3 text-base font-medium text-taskly-muted'>
                 Day {day.day} · {phaseLabels[phase.id]}
               </p>
-              <h2 className="mt-1 text-4xl font-bold tracking-tight text-taskly-ink">
+              <h2 className='mt-1 text-4xl font-bold tracking-tight text-taskly-ink'>
                 {day.title}
               </h2>
-              <p className="mt-2 text-base text-taskly-muted">{day.duration}</p>
+              <p className='mt-2 text-base text-taskly-muted'>{day.duration}</p>
             </div>
             <DayIcon type={day.type} />
           </div>
         </div>
 
-        <div className="space-y-5 p-8">
+        <div className='space-y-5 p-8'>
           <section>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-taskly-muted">
+            <h3 className='text-sm font-bold uppercase tracking-wider text-taskly-muted'>
               Today&apos;s practice
             </h3>
-            <p className="mt-2 text-lg leading-relaxed text-taskly-ink/90">
+            <p className='mt-2 text-lg leading-relaxed text-taskly-ink/90'>
               {day.description}
             </p>
           </section>
 
-          <section className="rounded-2xl bg-taskly-surface p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-taskly-peach-text">
+          <section className='rounded-2xl bg-taskly-surface p-5'>
+            <h3 className='text-sm font-bold uppercase tracking-wider text-taskly-peach-text'>
               The exercise
             </h3>
-            <p className="mt-2 text-base leading-relaxed text-taskly-ink/80">{day.exercise}</p>
+            <p className='mt-2 text-base leading-relaxed text-taskly-ink/80'>
+              {day.exercise}
+            </p>
           </section>
 
-          <section className="rounded-2xl border border-taskly-border p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-violet-600">
+          <section className='rounded-2xl border border-taskly-border p-5'>
+            <h3 className='text-sm font-bold uppercase tracking-wider text-violet-600'>
               Why this works
             </h3>
-            <p className="mt-2 text-base italic leading-relaxed text-taskly-muted">{day.why}</p>
+            <p className='mt-2 text-base italic leading-relaxed text-taskly-muted'>
+              {day.why}
+            </p>
           </section>
 
-          <section className="border-l-4 border-taskly-yellow pl-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-taskly-muted">
+          <section className='border-l-4 border-taskly-yellow pl-4'>
+            <h3 className='text-sm font-bold uppercase tracking-wider text-taskly-muted'>
               Coach&apos;s tip
             </h3>
-            <p className="mt-2 text-base leading-relaxed text-taskly-ink/75">{day.tip}</p>
+            <p className='mt-2 text-base leading-relaxed text-taskly-ink/75'>
+              {day.tip}
+            </p>
           </section>
 
           <DayRecorder
@@ -245,7 +284,11 @@ function DayDetail({
 
           <AssessmentFeedback assessment={assessment} />
 
-          <ShareForReview day={day} recording={recording} disabled={uploading} />
+          <ShareForReview
+            day={day}
+            recording={recording}
+            disabled={uploading}
+          />
         </div>
       </article>
     </div>
@@ -284,12 +327,18 @@ export default function SpeechTraining() {
 
   const currentDayNum = useMemo(
     () => getNextAllowedDay(completed, assessments, programStartDate, now),
-    [completed, assessments, programStartDate, now]
+    [completed, assessments, programStartDate, now],
   );
 
   const waitingMessage = useMemo(
-    () => getWaitingForNextDayMessage(completed, assessments, programStartDate, now),
-    [completed, assessments, programStartDate, now]
+    () =>
+      getWaitingForNextDayMessage(
+        completed,
+        assessments,
+        programStartDate,
+        now,
+      ),
+    [completed, assessments, programStartDate, now],
   );
 
   const findDayGlobally = (dayNum) => {
@@ -301,79 +350,89 @@ export default function SpeechTraining() {
   };
 
   const handleSelectDay = (day) => {
-    const phaseIndex = phases.findIndex((p) => p.days.some((d) => d.day === day.day));
+    const phaseIndex = phases.findIndex((p) =>
+      p.days.some((d) => d.day === day.day),
+    );
     if (phaseIndex >= 0) setActivePhase(phaseIndex);
     setActiveDay(day);
   };
 
   if (loading) {
     return (
-      <div className="speakly-app flex min-h-screen items-center justify-center bg-white font-speakly text-lg text-taskly-muted">
-        Loading your progress…
+      <div className='speakly-app flex min-h-screen flex-col items-center justify-center gap-4 bg-white font-speakly text-lg text-taskly-muted'>
+        <SpeaklyLogo variant='icon' size='xl' />
+        <p>Loading your progress…</p>
       </div>
     );
   }
 
   const detailPhase =
-    activeDay && phases.find((p) => p.days.some((d) => d.day === activeDay.day));
+    activeDay &&
+    phases.find((p) => p.days.some((d) => d.day === activeDay.day));
 
   return (
-    <div className="speakly-app min-h-screen bg-white font-speakly text-taskly-ink">
-      <div className="mx-auto flex min-h-screen max-w-[1280px] flex-col lg:flex-row">
+    <div className='speakly-app min-h-screen bg-white font-speakly text-taskly-ink'>
+      <div className='mx-auto flex min-h-screen max-w-[1280px] flex-col lg:flex-row'>
         {/* Left sidebar */}
-        <aside className="w-full shrink-0 border-b border-taskly-border bg-white p-6 lg:w-72 lg:border-b-0 lg:border-r lg:p-8">
-          <Link to="/" className="mb-6 flex items-center gap-2.5 no-underline">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-taskly-yellow text-lg font-bold text-taskly-ink">
-              +
-            </span>
-            <span className="text-2xl font-bold text-taskly-ink">speakly</span>
-          </Link>
+        <aside className='w-full shrink-0 border-b border-taskly-border bg-white p-6 lg:w-72 lg:border-b-0 lg:border-r lg:p-8'>
+          <SpeaklyLogo
+            variant='logo'
+            size='lg'
+            linkTo='/'
+            className='mb-6 h-[4rem]'
+          />
 
           {user?.email && (
-            <div className="mb-6 rounded-2xl bg-taskly-surface px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-taskly-muted">
+            <div className='mb-6 rounded-2xl bg-taskly-surface px-4 py-3'>
+              <p className='text-xs font-semibold uppercase tracking-wider text-taskly-muted'>
                 Your account
               </p>
-              <p className="mt-1 truncate text-sm font-medium text-taskly-ink">{user.email}</p>
+              <p className='mt-1 truncate text-sm font-medium text-taskly-ink'>
+                {user.email}
+              </p>
               <button
-                type="button"
+                type='button'
                 onClick={async () => {
                   await signOut();
-                  navigate('/speech-training/login');
+                  navigate("/speech-training/login");
                 }}
-                className="mt-2 text-sm font-semibold text-taskly-peach-text hover:underline"
+                className='mt-2 text-sm font-semibold text-taskly-peach-text hover:underline'
               >
                 Sign out
               </button>
             </div>
           )}
 
-          <p className="text-sm font-semibold uppercase tracking-wider text-taskly-muted">
+          <p className='text-sm font-semibold uppercase tracking-wider text-taskly-muted'>
             Phases
           </p>
-          <ul className="mt-3 space-y-2">
+          <ul className='mt-3 space-y-2'>
             {phases.map((p, i) => {
               const phaseDone = p.days.filter(
-                (d) => completed[d.day] && !assessments[d.day]?.requiresRedo
+                (d) => completed[d.day] && !assessments[d.day]?.requiresRedo,
               ).length;
               const isActive = activePhase === i && !activeDay;
               return (
                 <li key={p.id}>
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => {
                       setActivePhase(i);
                       setActiveDay(null);
                     }}
                     className={`w-full rounded-2xl p-4 text-left transition ${
                       isActive
-                        ? 'bg-taskly-yellow shadow-soft'
-                        : 'bg-taskly-surface hover:bg-neutral-100'
+                        ? "bg-taskly-yellow shadow-soft"
+                        : "bg-taskly-surface hover:bg-neutral-100"
                     }`}
                   >
-                    <p className="text-sm font-medium text-taskly-muted">{p.subtitle}</p>
-                    <p className="mt-0.5 text-lg font-semibold text-taskly-ink">{phaseLabels[p.id]}</p>
-                    <p className="mt-1 text-sm text-taskly-muted">
+                    <p className='text-sm font-medium text-taskly-muted'>
+                      {p.subtitle}
+                    </p>
+                    <p className='mt-0.5 text-lg font-semibold text-taskly-ink'>
+                      {phaseLabels[p.id]}
+                    </p>
+                    <p className='mt-1 text-sm text-taskly-muted'>
                       {phaseDone}/{p.days.length} days
                     </p>
                   </button>
@@ -396,7 +455,7 @@ export default function SpeechTraining() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 p-6 lg:p-10">
+        <main className='flex-1 p-6 lg:p-10'>
           {activeDay && detailPhase ? (
             <DayDetail
               day={activeDay}
@@ -411,14 +470,14 @@ export default function SpeechTraining() {
                 completed,
                 assessments,
                 programStartDate,
-                now
+                now,
               )}
               lockedReason={getDayLockMessage(
                 activeDay.day,
                 completed,
                 assessments,
                 programStartDate,
-                now
+                now,
               )}
               onBack={() => setActiveDay(null)}
               onSaveRecording={saveRecording}
@@ -426,81 +485,92 @@ export default function SpeechTraining() {
             />
           ) : (
             <>
-              <header className="mb-8">
-                <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
-                  <span className="text-taskly-muted">Phase schedule — </span>
-                  <span className="text-taskly-yellow">{phase.subtitle}</span>
+              <header className='mb-8'>
+                <h1 className='text-4xl font-bold tracking-tight md:text-5xl'>
+                  <span className='text-taskly-muted'>Phase schedule — </span>
+                  <span className='text-taskly-yellow'>{phase.subtitle}</span>
                 </h1>
-                <p className="mt-2 max-w-lg text-base text-taskly-muted">{phase.tagline}</p>
+                <p className='mt-2 max-w-lg text-base text-taskly-muted'>
+                  {phase.tagline}
+                </p>
               </header>
 
-              <ul className="space-y-3">
+              <ul className='space-y-3'>
                 {phase.days.map((day) => {
-                  const isDone = completed[day.day] && !assessments[day.day]?.requiresRedo;
+                  const isDone =
+                    completed[day.day] && !assessments[day.day]?.requiresRedo;
                   const isCurrent = day.day === currentDayNum;
                   const locked = isDayLocked(
                     day.day,
                     completed,
                     assessments,
                     programStartDate,
-                    now
+                    now,
                   );
-                  const pill = typePills[day.type] || 'bg-taskly-peach text-taskly-peach-text';
+                  const pill =
+                    typePills[day.type] ||
+                    "bg-taskly-peach text-taskly-peach-text";
 
                   return (
                     <li key={day.day}>
                       <button
-                        type="button"
+                        type='button'
                         onClick={() => setActiveDay(day)}
                         className={`group flex w-full items-center gap-4 rounded-2xl p-4 text-left transition ${
                           isDone
-                            ? 'bg-taskly-yellow shadow-soft hover:bg-taskly-yellow-hover'
+                            ? "bg-taskly-yellow shadow-soft hover:bg-taskly-yellow-hover"
                             : isCurrent
-                              ? 'border-2 border-taskly-yellow bg-white shadow-card'
+                              ? "border-2 border-taskly-yellow bg-white shadow-card"
                               : locked
-                                ? 'border border-dashed border-neutral-200 bg-neutral-50 opacity-70'
-                                : 'border border-taskly-border bg-white shadow-soft hover:border-taskly-yellow/50 hover:shadow-card'
+                                ? "border border-dashed border-neutral-200 bg-neutral-50 opacity-70"
+                                : "border border-taskly-border bg-white shadow-soft hover:border-taskly-yellow/50 hover:shadow-card"
                         }`}
                       >
                         <span
                           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
                             isDone
-                              ? 'bg-white/80 text-taskly-ink'
-                              : 'bg-taskly-surface text-taskly-muted group-hover:bg-taskly-yellow/30'
+                              ? "bg-white/80 text-taskly-ink"
+                              : "bg-taskly-surface text-taskly-muted group-hover:bg-taskly-yellow/30"
                           }`}
                         >
                           {isDone ? (
-                            <CheckIcon className="h-5 w-5" />
+                            <CheckIcon className='h-5 w-5' />
                           ) : (
-                            <span className="text-base font-bold">{day.day}</span>
+                            <span className='text-base font-bold'>
+                              {day.day}
+                            </span>
                           )}
                         </span>
 
                         {!isDone && <DayIcon type={day.type} />}
 
-                        <div className="min-w-0 flex-1">
-                          <p className="text-lg font-semibold text-taskly-ink">{day.title}</p>
-                          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                        <div className='min-w-0 flex-1'>
+                          <p className='text-lg font-semibold text-taskly-ink'>
+                            {day.title}
+                          </p>
+                          <div className='mt-1.5 flex flex-wrap items-center gap-2'>
                             <span
                               className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${pill}`}
                             >
                               {day.type}
                             </span>
-                            <span className="text-sm text-taskly-muted">{day.duration}</span>
+                            <span className='text-sm text-taskly-muted'>
+                              {day.duration}
+                            </span>
                             {isCurrent && (
-                              <span className="rounded-full bg-taskly-ink px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
+                              <span className='rounded-full bg-taskly-ink px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white'>
                                 Up next
                               </span>
                             )}
                             {locked && (
-                              <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-neutral-500">
+                              <span className='rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-neutral-500'>
                                 Locked
                               </span>
                             )}
                           </div>
                         </div>
 
-                        <span className="text-taskly-muted opacity-0 transition group-hover:opacity-100">
+                        <span className='text-taskly-muted opacity-0 transition group-hover:opacity-100'>
                           ›
                         </span>
                       </button>
@@ -509,7 +579,7 @@ export default function SpeechTraining() {
                 })}
               </ul>
 
-              <p className="mt-8 text-center text-sm text-taskly-muted">
+              <p className='mt-8 text-center text-sm text-taskly-muted'>
                 Tap a day to open exercises and record your practice.
               </p>
             </>
@@ -517,63 +587,73 @@ export default function SpeechTraining() {
         </main>
 
         {/* Right sidebar */}
-        <aside className="w-full shrink-0 border-t border-taskly-border bg-taskly-surface/50 p-6 lg:w-64 lg:border-l lg:border-t-0 lg:p-8">
-          <div className="rounded-3xl bg-white p-6 shadow-card">
-            <p className="text-base font-semibold text-taskly-ink">Your progress</p>
-            <div className="mt-4 flex justify-center">
+        <aside className='w-full shrink-0 border-t border-taskly-border bg-taskly-surface/50 p-6 lg:w-64 lg:border-l lg:border-t-0 lg:p-8'>
+          <div className='rounded-3xl bg-white p-6 shadow-card'>
+            <p className='text-base font-semibold text-taskly-ink'>
+              Your progress
+            </p>
+            <div className='mt-4 flex justify-center'>
               <ProgressRing pct={progressPct} />
             </div>
-            <p className="mt-3 text-center text-base text-taskly-muted">
-              <span className="font-bold text-taskly-ink">{completedCount}</span> of 21 days
-              complete
+            <p className='mt-3 text-center text-base text-taskly-muted'>
+              <span className='font-bold text-taskly-ink'>
+                {completedCount}
+              </span>{" "}
+              of 21 days complete
             </p>
           </div>
 
-          <div className="mt-4 rounded-3xl bg-white p-5 shadow-soft">
-            <p className="text-sm font-bold uppercase tracking-wider text-taskly-muted">
+          <div className='mt-4 rounded-3xl bg-white p-5 shadow-soft'>
+            <p className='text-sm font-bold uppercase tracking-wider text-taskly-muted'>
               Phase goal
             </p>
-            <p className="mt-2 text-base leading-relaxed text-taskly-ink/80">{phase.goal}</p>
+            <p className='mt-2 text-base leading-relaxed text-taskly-ink/80'>
+              {phase.goal}
+            </p>
           </div>
 
           {waitingMessage && !activeDay && (
-            <div className="mt-4 rounded-3xl border border-taskly-yellow/60 bg-taskly-yellow/25 p-5">
-              <p className="text-sm font-bold uppercase tracking-wider text-taskly-ink/60">
+            <div className='mt-4 rounded-3xl border border-taskly-yellow/60 bg-taskly-yellow/25 p-5'>
+              <p className='text-sm font-bold uppercase tracking-wider text-taskly-ink/60'>
                 Well done today
               </p>
-              <p className="mt-2 text-base leading-relaxed text-taskly-ink">{waitingMessage}</p>
+              <p className='mt-2 text-base leading-relaxed text-taskly-ink'>
+                {waitingMessage}
+              </p>
             </div>
           )}
 
           {currentDayNum && !activeDay && !waitingMessage && (
-            <div className="mt-4 rounded-3xl bg-taskly-yellow p-5">
-              <p className="text-sm font-bold uppercase tracking-wider text-taskly-ink/60">
+            <div className='mt-4 rounded-3xl bg-taskly-yellow p-5'>
+              <p className='text-sm font-bold uppercase tracking-wider text-taskly-ink/60'>
                 Focus today
               </p>
-              <p className="mt-1 text-xl font-bold text-taskly-ink">Day {currentDayNum}</p>
+              <p className='mt-1 text-xl font-bold text-taskly-ink'>
+                Day {currentDayNum}
+              </p>
               <button
-                type="button"
+                type='button'
                 onClick={() => {
                   const match = findDayGlobally(currentDayNum);
                   if (match) handleSelectDay(match.day);
                 }}
-                className="mt-3 flex h-11 w-11 items-center justify-center rounded-full bg-taskly-ink text-white transition hover:scale-105"
-                aria-label="Open current day"
+                className='mt-3 flex h-11 w-11 items-center justify-center rounded-full bg-taskly-ink text-white transition hover:scale-105'
+                aria-label='Open current day'
               >
                 →
               </button>
             </div>
           )}
 
-          <p className="mt-6 text-center text-xs text-taskly-muted">
+          <p className='mt-6 text-center text-xs text-taskly-muted'>
             {canRecord
-              ? 'Recordings saved to Firebase Storage'
+              ? "Recordings saved to Firebase Storage"
               : isSynced
-                ? 'Progress synced — add Storage for recordings'
-                : 'Saved locally'}
+                ? "Progress synced — add Storage for recordings"
+                : "Saved locally"}
           </p>
           {syncError && (
-            <p className="mt-2 text-center text-xs text-red-500">{syncError}</p>
+            <p className='mt-2 text-center text-xs text-red-500'>{syncError}</p>
           )}
         </aside>
       </div>

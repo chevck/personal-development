@@ -8,6 +8,9 @@ module.exports = {
         speakly: ['Delius', 'cursive'],
       },
       colors: {
+        speakly: {
+          coral: '#D95D39',
+        },
         taskly: {
           yellow: '#F5D76E',
           'yellow-hover': '#EDCB5A',

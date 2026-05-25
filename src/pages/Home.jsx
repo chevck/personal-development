@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SpeaklyLogo from '../components/SpeaklyLogo';
 import { projects } from '../config/projects';
 
 export default function Home() {
@@ -24,8 +25,11 @@ export default function Home() {
           <Link
             key={project.id}
             to={project.path}
-            className="group block rounded-3xl border border-taskly-border bg-white p-6 no-underline shadow-soft transition hover:border-taskly-yellow hover:shadow-card"
+            className="group block rounded-3xl border border-taskly-border bg-white p-6 no-underline shadow-soft transition hover:border-speakly-coral/40 hover:shadow-card"
           >
+            {project.id === 'speech-training' && (
+              <SpeaklyLogo variant="logo" size="sm" className="mb-4" />
+            )}
             <span className="text-xs font-semibold uppercase tracking-wider text-taskly-muted">
               {project.tag}
             </span>
