@@ -1,17 +1,12 @@
 import { Link } from 'react-router-dom';
-import SpeaklyLogo from '../components/SpeaklyLogo';
+import AppLogo from '../components/AppLogo';
 import { projects } from '../config/projects';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white font-sans text-taskly-ink">
       <header className="border-b border-taskly-border px-6 py-14 text-center">
-        <div className="mx-auto mb-4 flex w-fit items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-taskly-yellow text-lg font-bold">
-            +
-          </span>
-          <span className="text-xl font-bold">persona</span>
-        </div>
+        <AppLogo variant="logo" size="lg" className="mx-auto mb-4" />
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
           Personal growth projects
         </h1>
@@ -25,11 +20,9 @@ export default function Home() {
           <Link
             key={project.id}
             to={project.path}
-            className="group block rounded-3xl border border-taskly-border bg-white p-6 no-underline shadow-soft transition hover:border-speakly-coral/40 hover:shadow-card"
+            className="group block rounded-3xl border border-taskly-border bg-white p-6 no-underline shadow-soft transition hover:border-persona-taupe/30 hover:shadow-card"
           >
-            {project.id === 'speech-training' && (
-              <SpeaklyLogo variant="logo" size="sm" className="mb-4" />
-            )}
+            <AppLogo projectId={project.id} variant="logo" size="sm" className="mb-4" />
             <span className="text-xs font-semibold uppercase tracking-wider text-taskly-muted">
               {project.tag}
             </span>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import SpeaklyLogo from '../components/SpeaklyLogo';
+import AppLogo from '../components/AppLogo';
+import { SPEECH_TRAINING_PROJECT_ID } from '../config/projects';
 import { useAuth } from '../contexts/AuthContext';
 import { registerWithPassword, signInWithPassword } from '../firebase/auth';
 import { isFirebaseConfigured } from '../firebase/config';
@@ -54,7 +55,13 @@ export default function SpeechTrainingLogin() {
   return (
     <div className="speakly-app min-h-screen bg-white font-speakly text-taskly-ink">
       <div className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-6 py-12">
-        <SpeaklyLogo variant="logo" size="lg" linkTo="/" className="mb-10" />
+        <AppLogo
+          projectId={SPEECH_TRAINING_PROJECT_ID}
+          variant="logo"
+          size="lg"
+          linkTo="/"
+          className="mb-10"
+        />
 
         <div className="rounded-3xl border border-taskly-border bg-white p-8 shadow-card">
           <h1 className="text-3xl font-bold tracking-tight">Speak With Intention</h1>

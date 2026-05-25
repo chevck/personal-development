@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import SpeaklyLogo from './SpeaklyLogo';
+import AppLogo from './AppLogo';
 import { useAuth } from '../contexts/AuthContext';
+import { SPEECH_TRAINING_PROJECT_ID } from '../config/projects';
 import { isFirebaseConfigured } from '../firebase/config';
 
 export default function ProtectedRoute({ children, loginPath = '/speech-training/login' }) {
@@ -11,7 +12,12 @@ export default function ProtectedRoute({ children, loginPath = '/speech-training
     return (
       <div className="speakly-app flex min-h-screen items-center justify-center bg-white p-6 font-speakly text-taskly-ink">
         <div className="max-w-md rounded-3xl border border-taskly-border bg-white p-8 text-center shadow-card">
-          <SpeaklyLogo variant="logo" size="md" className="mx-auto mb-6" />
+          <AppLogo
+            projectId={SPEECH_TRAINING_PROJECT_ID}
+            variant="logo"
+            size="md"
+            className="mx-auto mb-6"
+          />
           <h1 className="text-2xl font-bold">Firebase required</h1>
           <p className="mt-3 text-base text-taskly-muted">
             Speak With Intention needs Firebase configured in your environment. Copy{' '}
@@ -26,7 +32,7 @@ export default function ProtectedRoute({ children, loginPath = '/speech-training
   if (loading) {
     return (
       <div className="speakly-app flex min-h-screen flex-col items-center justify-center gap-4 bg-white font-speakly text-lg text-taskly-muted">
-        <SpeaklyLogo variant="icon" size="lg" />
+        <AppLogo projectId={SPEECH_TRAINING_PROJECT_ID} variant="icon" size="lg" />
         <p>Checking your account…</p>
       </div>
     );

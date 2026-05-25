@@ -1,18 +1,19 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import SpeaklyLogo from "../../components/SpeaklyLogo";
-import { useAuth } from "../../contexts/AuthContext";
-import { phases } from "./phases";
-import { useSpeechTrainingProgress } from "../../hooks/useSpeechTrainingProgress";
+import AppLogo from '../../components/AppLogo';
+import { useAuth } from '../../contexts/AuthContext';
+import { SPEECH_TRAINING_PROJECT_ID } from '../../config/projects';
+import { phases } from './phases';
+import { useSpeechTrainingProgress } from '../../hooks/useSpeechTrainingProgress';
 import {
   getDayLockMessage,
   getNextAllowedDay,
   getWaitingForNextDayMessage,
   isDayLocked,
-} from "../../lib/speechTrainingProgress";
-import DayRecorder from "./components/DayRecorder";
-import ShareForReview from "./components/ShareForReview";
-import AssessmentFeedback from "./components/AssessmentFeedback";
+} from '../../lib/speechTrainingProgress';
+import DayRecorder from './components/DayRecorder';
+import ShareForReview from './components/ShareForReview';
+import AssessmentFeedback from './components/AssessmentFeedback';
 
 const phaseLabels = { 1: "The Brake", 2: "The Shape", 3: "The Platform" };
 
@@ -360,7 +361,7 @@ export default function SpeechTraining() {
   if (loading) {
     return (
       <div className='speakly-app flex min-h-screen flex-col items-center justify-center gap-4 bg-white font-speakly text-lg text-taskly-muted'>
-        <SpeaklyLogo variant='icon' size='xl' />
+        <AppLogo projectId={SPEECH_TRAINING_PROJECT_ID} variant="icon" size="xl" />
         <p>Loading your progress…</p>
       </div>
     );
@@ -375,11 +376,12 @@ export default function SpeechTraining() {
       <div className='mx-auto flex min-h-screen max-w-[1280px] flex-col lg:flex-row'>
         {/* Left sidebar */}
         <aside className='w-full shrink-0 border-b border-taskly-border bg-white p-6 lg:w-72 lg:border-b-0 lg:border-r lg:p-8'>
-          <SpeaklyLogo
-            variant='logo'
-            size='lg'
-            linkTo='/'
-            className='mb-6 h-[4rem]'
+          <AppLogo
+            projectId={SPEECH_TRAINING_PROJECT_ID}
+            variant="logo"
+            size="lg"
+            linkTo="/"
+            className="mb-6 h-[4rem]"
           />
 
           {user?.email && (

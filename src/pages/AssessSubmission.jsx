@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
-import SpeaklyLogo from '../components/SpeaklyLogo';
+import AppLogo from '../components/AppLogo';
+import { SPEECH_TRAINING_PROJECT_ID } from '../config/projects';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import {
   resolveSubmissionDocId,
@@ -103,7 +104,7 @@ export default function AssessSubmission() {
   if (loading) {
     return (
       <div className="speakly-app flex min-h-screen flex-col items-center justify-center gap-4 bg-white p-6 font-speakly">
-        <SpeaklyLogo variant="icon" size="lg" />
+        <AppLogo projectId={SPEECH_TRAINING_PROJECT_ID} variant="icon" size="lg" />
         <p className="text-lg text-taskly-muted">Loading submission…</p>
       </div>
     );
@@ -126,7 +127,7 @@ export default function AssessSubmission() {
   return (
     <div className="speakly-app min-h-screen bg-white font-speakly text-taskly-ink">
       <div className="mx-auto max-w-2xl px-6 py-10">
-        <SpeaklyLogo variant="logo" size="md" className="mb-6" />
+        <AppLogo projectId={SPEECH_TRAINING_PROJECT_ID} variant="logo" size="md" className="mb-6" />
         <p className="text-sm font-semibold uppercase tracking-wider text-taskly-muted">
           Assessment
         </p>

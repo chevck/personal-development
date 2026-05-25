@@ -11,6 +11,9 @@ module.exports = {
         speakly: {
           coral: '#D95D39',
         },
+        persona: {
+          taupe: '#30261E',
+        },
         taskly: {
           yellow: '#F5D76E',
           'yellow-hover': '#EDCB5A',

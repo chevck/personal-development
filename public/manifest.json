@@ -1,20 +1,20 @@
 {
-  "short_name": "Speakly",
-  "name": "Speakly — Speak With Intention",
+  "short_name": "Persona",
+  "name": "Persona — Personal growth projects",
   "icons": [
     {
-      "src": "speakly-icon.png",
+      "src": "persona-icon.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "speakly-icon.png",
+      "src": "persona-icon.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#D95D39",
+  "theme_color": "#30261E",
   "background_color": "#ffffff"
 }
