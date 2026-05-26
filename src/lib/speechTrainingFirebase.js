@@ -1,11 +1,13 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage, isStorageConfigured } from '../firebase/config';
 import { requireAuthUser } from '../firebase/auth';
+import { extensionForMimeType, normalizeMimeType } from './audioRecording';
 import { getUserId } from './userId';
 
-export function buildRecordingPath(dayNum) {
+export function buildRecordingPath(dayNum, mimeType) {
   const userId = getUserId();
-  return `speech-training/${userId}/day-${dayNum}/${Date.now()}.webm`;
+  const ext = extensionForMimeType(mimeType);
+  return `speech-training/${userId}/day-${dayNum}/${Date.now()}.${ext}`;
 }
 
 export async function uploadDayRecording(dayNum, blob) {
@@ -15,9 +17,9 @@ export async function uploadDayRecording(dayNum, blob) {
 
   await requireAuthUser();
 
-  const storagePath = buildRecordingPath(dayNum);
+  const contentType = normalizeMimeType(blob.type || 'audio/webm');
+  const storagePath = buildRecordingPath(dayNum, contentType);
   const storageRef = ref(storage, storagePath);
-  const contentType = blob.type || 'audio/webm';
 
   await uploadBytes(storageRef, blob, { contentType });
   const downloadUrl = await getDownloadURL(storageRef);

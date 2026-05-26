@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import AppLogo from '../components/AppLogo';
+import RecordingPlayer from '../components/RecordingPlayer';
 import { SPEECH_TRAINING_PROJECT_ID } from '../config/projects';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import {
@@ -159,14 +160,11 @@ export default function AssessSubmission() {
               Duration: {formatDuration(submission.recording.durationMs)}
             </p>
           )}
-          <audio
-            controls
+          <RecordingPlayer
+            className="mt-4"
             src={submission.recording?.downloadUrl}
-            className="mt-4 w-full"
-            preload="metadata"
-          >
-            <track kind="captions" />
-          </audio>
+            mimeType={submission.recording?.mimeType}
+          />
         </section>
 
         {isClosed && review ? (

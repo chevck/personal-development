@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import RecordingPlayer from '../../../components/RecordingPlayer';
+import { pickRecordingMimeType } from '../../../lib/audioRecording';
 
 function formatDuration(ms) {
   const totalSec = Math.floor(ms / 1000);
   const m = Math.floor(totalSec / 60);
   const s = totalSec % 60;
   return `${m}:${s.toString().padStart(2, '0')}`;
-}
-
-function pickMimeType() {
-  const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
-  return types.find((t) => MediaRecorder.isTypeSupported(t)) || '';
 }
 
 function friendlyUploadError(message) {
@@ -34,6 +31,7 @@ export default function DayRecorder({
   const [error, setError] = useState(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewMimeType, setPreviewMimeType] = useState('');
   const [previewDurationMs, setPreviewDurationMs] = useState(0);
 
   const mediaRecorderRef = useRef(null);
@@ -54,6 +52,7 @@ export default function DayRecorder({
       return null;
     });
     setPreviewDurationMs(0);
+    setPreviewMimeType('');
     pendingBlobRef.current = null;
   }, []);
 
@@ -77,7 +76,7 @@ export default function DayRecorder({
       streamRef.current = stream;
       chunksRef.current = [];
 
-      const mimeType = pickMimeType();
+      const mimeType = pickRecordingMimeType();
       const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       mediaRecorderRef.current = recorder;
 
@@ -99,6 +98,7 @@ export default function DayRecorder({
         }
 
         pendingBlobRef.current = blob;
+        setPreviewMimeType(blob.type || mimeType || 'audio/webm');
         setPreviewDurationMs(durationMs);
         setPreviewUrl(URL.createObjectURL(blob));
         setStatus('preview');
@@ -222,9 +222,10 @@ export default function DayRecorder({
               </span>
             )}
           </p>
-          <audio controls src={recording.downloadUrl} className="w-full" preload="metadata">
-            <track kind="captions" />
-          </audio>
+          <RecordingPlayer
+            src={recording.downloadUrl}
+            mimeType={recording.mimeType}
+          />
           {recording.durationMs != null && (
             <p className="mt-1 text-sm text-taskly-muted">
               Duration: {formatDuration(recording.durationMs)}
@@ -238,9 +239,7 @@ export default function DayRecorder({
           <p className="mb-2 text-sm font-semibold text-taskly-ink">
             Listen before saving · {formatDuration(previewDurationMs)}
           </p>
-          <audio controls src={previewUrl} className="w-full" preload="metadata">
-            <track kind="captions" />
-          </audio>
+          <RecordingPlayer src={previewUrl} mimeType={previewMimeType} />
         </div>
       )}
 
