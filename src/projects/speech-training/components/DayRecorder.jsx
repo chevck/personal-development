@@ -277,7 +277,7 @@ export default function DayRecorder({
         {isUploading && (
           <div className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white py-4 text-base font-medium text-taskly-muted">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-taskly-yellow border-t-transparent" />
-            Saving to Firebase…
+            Saving your recording…
           </div>
         )}
 

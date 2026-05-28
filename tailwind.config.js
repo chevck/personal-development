@@ -8,6 +8,10 @@ module.exports = {
         speakly: ['Delius', 'cursive'],
       },
       colors: {
+        brand: {
+          DEFAULT: 'rgb(var(--brand) / <alpha-value>)',
+          hover: 'rgb(var(--brand-hover) / <alpha-value>)',
+        },
         speakly: {
           coral: '#D95D39',
         },

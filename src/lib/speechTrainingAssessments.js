@@ -36,6 +36,24 @@ export function buildAssessUrl(shareCode, dayNum, recordingNum) {
   return `${window.location.origin}/${shareCode}/day-${dayNum}/recording-${recordingNum}`;
 }
 
+export function parseSubmissionDocId(submissionDocId) {
+  const match = String(submissionDocId || '').match(/^(\d{5})-day-(\d+)-recording-(\d+)$/);
+  if (!match) return null;
+  const shareCode = match[1];
+  const dayNum = Number(match[2]);
+  const recordingNum = Number(match[3]);
+  if (!Number.isFinite(dayNum) || dayNum < 1 || !Number.isFinite(recordingNum) || recordingNum < 1) {
+    return null;
+  }
+  return { shareCode, dayNum, recordingNum };
+}
+
+export function buildAssessUrlFromSubmissionDocId(submissionDocId) {
+  const parsed = parseSubmissionDocId(submissionDocId);
+  if (!parsed) return null;
+  return buildAssessUrl(parsed.shareCode, parsed.dayNum, parsed.recordingNum);
+}
+
 export function parseAssessPathSegments(userCode, daySegment, recordingSegment) {
   const code = String(userCode || '');
   const dayMatch = String(daySegment || '').match(/^day-(\d+)$/i);

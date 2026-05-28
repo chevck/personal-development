@@ -288,6 +288,7 @@ function DayDetail({
           <ShareForReview
             day={day}
             recording={recording}
+            assessment={assessment}
             disabled={uploading}
           />
         </div>

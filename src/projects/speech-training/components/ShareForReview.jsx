@@ -1,12 +1,22 @@
-import { useState } from 'react';
-import { createAssessmentSubmission } from '../../../lib/speechTrainingAssessments';
+import { useEffect, useState } from 'react';
+import {
+  buildAssessUrlFromSubmissionDocId,
+  createAssessmentSubmission,
+} from '../../../lib/speechTrainingAssessments';
 import { getUserId } from '../../../lib/userId';
 
-export default function ShareForReview({ day, recording, disabled }) {
+export default function ShareForReview({ day, recording, assessment, disabled }) {
   const [sharing, setSharing] = useState(false);
   const [shareUrl, setShareUrl] = useState(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const existing = assessment?.pendingSubmissionId
+      ? buildAssessUrlFromSubmissionDocId(assessment.pendingSubmissionId)
+      : null;
+    setShareUrl(existing);
+  }, [assessment?.pendingSubmissionId]);
 
   const handleShare = async () => {
     setError(null);
@@ -56,32 +66,37 @@ export default function ShareForReview({ day, recording, disabled }) {
         </p>
       )}
 
-      {!shareUrl && (
-        <button
-          type="button"
-          onClick={handleShare}
-          disabled={disabled || sharing}
-          className="mt-4 w-full rounded-2xl border-2 border-taskly-yellow bg-taskly-yellow/30 py-3.5 text-base font-bold text-taskly-ink transition hover:bg-taskly-yellow disabled:opacity-50"
-        >
-          {sharing ? 'Creating link…' : 'Create assessment link'}
-        </button>
-      )}
-
-      {shareUrl && (
-        <div className="mt-4 space-y-3">
+      <div className="mt-4 space-y-3">
+        {shareUrl ? (
           <div className="rounded-xl bg-taskly-surface p-3">
             <p className="mb-2 text-sm font-semibold text-taskly-muted">Assessment link</p>
             <p className="break-all text-sm text-taskly-ink">{shareUrl}</p>
           </div>
+        ) : (
+          <p className="rounded-xl bg-taskly-surface p-3 text-sm text-taskly-muted">
+            No assessment link yet for this recording.
+          </p>
+        )}
+
+        <div className="grid gap-2 sm:grid-cols-2">
           <button
             type="button"
             onClick={handleCopy}
-            className="w-full rounded-2xl bg-taskly-ink py-3.5 text-base font-bold text-white transition hover:bg-neutral-800"
+            disabled={!shareUrl}
+            className="w-full rounded-2xl bg-taskly-ink py-3.5 text-base font-bold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {copied ? 'Copied!' : 'Copy link for assessor'}
+            {copied ? 'Copied!' : 'Copy link'}
+          </button>
+          <button
+            type="button"
+            onClick={handleShare}
+            disabled={disabled || sharing}
+            className="w-full rounded-2xl border-2 border-taskly-yellow bg-taskly-yellow/30 py-3.5 text-base font-bold text-taskly-ink transition hover:bg-taskly-yellow disabled:opacity-50"
+          >
+            {sharing ? 'Creating link…' : shareUrl ? 'Create new link' : 'Create assessment link'}
           </button>
         </div>
-      )}
+      </div>
     </section>
   );
 }

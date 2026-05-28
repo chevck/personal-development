@@ -37,7 +37,7 @@ export default function AssessSubmission() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [assessorName, setAssessorName] = useState('');
-  const [score, setScore] = useState(7);
+  const [score, setScore] = useState(null);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -124,6 +124,7 @@ export default function AssessSubmission() {
     submission?.status === 'reviewed' ||
     submission?.status === 'superseded' ||
     submitted;
+  const isScoreSelected = Number.isFinite(score);
 
   return (
     <div className="speakly-app min-h-screen bg-white font-speakly text-taskly-ink">
@@ -225,18 +226,42 @@ export default function AssessSubmission() {
 
             <label className="block">
               <span className="text-sm font-semibold text-taskly-muted">
-                Score (1–10, below 5 requires redo)
+                Score (pick one, 1–10)
               </span>
-              <div className="mt-3 flex items-center gap-4">
-                <input
-                  type="range"
-                  min={1}
-                  max={10}
-                  value={score}
-                  onChange={(e) => setScore(Number(e.target.value))}
-                  className="flex-1 accent-taskly-yellow"
-                />
-                <span className="w-12 text-center text-2xl font-bold">{score}</span>
+              <p className="mt-1 text-sm text-taskly-muted">
+                Scores below 5 automatically require the student to record again.
+              </p>
+              <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-5">
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
+                  const selected = score === n;
+                  const isRedo = n < 5;
+                  const isPass = n > 5;
+                  const intensity = isRedo ? (5 - n) / 4 : isPass ? (n - 5) / 5 : 0; // 0..1
+
+                  // Use HSL so the ramp goes from light → deep (and vice versa).
+                  const backgroundColor = isRedo
+                    ? `hsl(0 80% ${92 - intensity * 38}%)` // 4 light → 1 deep
+                    : isPass
+                      ? `hsl(142 70% ${92 - intensity * 38}%)` // 6 light → 10 deep
+                      : `hsl(45 95% 85%)`;
+                  const borderColor = backgroundColor;
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setScore(n)}
+                      style={selected ? { backgroundColor, borderColor } : undefined}
+                      className={`h-12 rounded-2xl border px-4 text-lg font-bold tabular-nums transition ${
+                        selected
+                          ? 'text-taskly-ink ring-2 ring-taskly-yellow'
+                          : 'border-taskly-border bg-white text-taskly-ink hover:border-taskly-yellow'
+                      }`}
+                      aria-pressed={selected}
+                    >
+                      {n}
+                    </button>
+                  );
+                })}
               </div>
             </label>
 
@@ -253,7 +278,7 @@ export default function AssessSubmission() {
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !isScoreSelected}
               className="w-full rounded-full bg-taskly-yellow py-3.5 text-base font-bold text-taskly-ink transition hover:brightness-95 disabled:opacity-50"
             >
               {submitting ? 'Submitting…' : 'Submit review'}
