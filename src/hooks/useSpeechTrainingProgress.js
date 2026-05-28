@@ -14,6 +14,7 @@ import {
   getSaveDayError,
 } from "../lib/speechTrainingProgress";
 import { useProgramClock } from "./useProgramClock";
+import { DEFAULT_THEME_ID, getThemeById } from "../config/themePalette";
 import {
   uploadDayRecording,
   deleteDayRecording,
@@ -26,6 +27,7 @@ import {
 const LOCAL_KEY = "speech-training-completed";
 const LOCAL_RECORDINGS_KEY = "speech-training-recordings";
 const LOCAL_PROGRAM_START_KEY = "speech-training-program-start";
+const LOCAL_THEME_KEY = "speech-training-theme";
 const FIRESTORE_PATH = "projects/speech-training/progress";
 
 function loadLocal() {
@@ -65,6 +67,13 @@ export function useSpeechTrainingProgress() {
   const [completed, setCompleted] = useState(loadLocal);
   const [recordings, setRecordings] = useState(loadLocalRecordings);
   const [assessments, setAssessments] = useState({});
+  const [themeId, setThemeId] = useState(() => {
+    try {
+      return localStorage.getItem(LOCAL_THEME_KEY) || DEFAULT_THEME_ID;
+    } catch {
+      return DEFAULT_THEME_ID;
+    }
+  });
   const [programStartDate, setProgramStartDate] = useState(() => {
     try {
       return localStorage.getItem(LOCAL_PROGRAM_START_KEY);
@@ -79,6 +88,18 @@ export function useSpeechTrainingProgress() {
   const effectiveProgramStart =
     programStartDate ||
     (user ? getProgramStartDateFromUser(user) : formatDateKey(now));
+
+  useEffect(() => {
+    const theme = getThemeById(themeId);
+    document.documentElement.style.setProperty("--brand", theme.brand);
+    document.documentElement.style.setProperty("--brand-hover", theme.hover);
+    document.documentElement.style.setProperty("--brand-ink", theme.ink);
+    try {
+      localStorage.setItem(LOCAL_THEME_KEY, theme.id);
+    } catch {
+      // ignore
+    }
+  }, [themeId]);
 
   useEffect(() => {
     if (authLoading) {
@@ -101,6 +122,14 @@ export function useSpeechTrainingProgress() {
           const remoteCompleted = normalizeDayMap(data.completed);
           const remoteRecordings = normalizeDayMap(data.recordings);
           const remoteAssessments = normalizeDayMap(data.assessments);
+          if (data.themeColor) {
+            setThemeId(data.themeColor);
+            try {
+              localStorage.setItem(LOCAL_THEME_KEY, data.themeColor);
+            } catch {
+              // ignore
+            }
+          }
           if (data.programStartDate) {
             setProgramStartDate(data.programStartDate);
             localStorage.setItem(
@@ -126,6 +155,7 @@ export function useSpeechTrainingProgress() {
 
     getDoc(ref).then(async (snapshot) => {
       const startDate = getProgramStartDateFromUser(user);
+      const initialTheme = themeId || DEFAULT_THEME_ID;
 
       if (!snapshot.exists()) {
         setProgramStartDate(startDate);
@@ -138,6 +168,7 @@ export function useSpeechTrainingProgress() {
           {
             email: user.email || null,
             programStartDate: startDate,
+            themeColor: initialTheme,
             completed: localCompleted,
             recordings: localRecordings,
             updatedAt: new Date().toISOString(),
@@ -152,14 +183,18 @@ export function useSpeechTrainingProgress() {
         localStorage.setItem(LOCAL_PROGRAM_START_KEY, startDate);
         await setDoc(
           ref,
-          { programStartDate: startDate, updatedAt: new Date().toISOString() },
+          {
+            programStartDate: startDate,
+            themeColor: snapshot.data().themeColor || initialTheme,
+            updatedAt: new Date().toISOString(),
+          },
           { merge: true },
         );
       }
     });
 
     return () => unsubscribe();
-  }, [user, authLoading]);
+  }, [user, authLoading, themeId]);
 
   const saveRecording = useCallback(
     async (dayNum, blob, durationMs) => {
@@ -365,10 +400,27 @@ export function useSpeechTrainingProgress() {
     [completed, clearDayProgress],
   );
 
+  const setThemeColor = useCallback(
+    async (nextThemeId) => {
+      setThemeId(nextThemeId);
+      if (isFirebaseConfigured && db) {
+        const ref = progressRef();
+        await setDoc(
+          ref,
+          { themeColor: nextThemeId, updatedAt: new Date().toISOString() },
+          { merge: true },
+        );
+      }
+    },
+    [setThemeId],
+  );
+
   return {
     completed,
     recordings,
     assessments,
+    themeId,
+    setThemeColor,
     programStartDate: effectiveProgramStart,
     now,
     toggleComplete,

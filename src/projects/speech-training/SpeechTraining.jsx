@@ -14,6 +14,7 @@ import {
 import DayRecorder from './components/DayRecorder';
 import ShareForReview from './components/ShareForReview';
 import AssessmentFeedback from './components/AssessmentFeedback';
+import { THEME_PALETTE } from '../../config/themePalette';
 
 const phaseLabels = { 1: "The Brake", 2: "The Shape", 3: "The Platform" };
 
@@ -52,6 +53,120 @@ function CheckIcon({ className = "h-5 w-5" }) {
         clipRule='evenodd'
       />
     </svg>
+  );
+}
+
+function ThemePicker({ themeId, onSave }) {
+  const [pendingId, setPendingId] = useState(themeId);
+  const [open, setOpen] = useState(false);
+  const isDirty = pendingId !== themeId;
+  const activeTheme =
+    THEME_PALETTE.find((t) => t.id === pendingId) || THEME_PALETTE[0];
+
+  return (
+    <div className="mt-3">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-3 rounded-xl border border-taskly-border bg-white px-3 py-2.5 text-left transition hover:border-brand/60"
+        aria-expanded={open}
+      >
+        <span className="flex items-center gap-3">
+          <span
+            className="h-6 w-6 rounded-full border border-black/5 shadow-soft"
+            style={{ backgroundColor: `rgb(${activeTheme.brand})` }}
+            aria-hidden
+          />
+          <span className="flex flex-col leading-tight">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-taskly-muted">
+              Theme color
+            </span>
+            <span className="text-sm font-semibold text-taskly-ink">
+              {activeTheme.label}
+            </span>
+          </span>
+        </span>
+        <svg
+          className={`h-4 w-4 text-taskly-muted transition ${open ? 'rotate-180' : ''}`}
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="mt-2 rounded-xl border border-taskly-border bg-white p-3 shadow-soft">
+          <ul className="grid grid-cols-2 gap-2">
+            {THEME_PALETTE.map((t) => {
+              const isPending = t.id === pendingId;
+              return (
+                <li key={t.id}>
+                  <button
+                    type="button"
+                    onClick={() => setPendingId(t.id)}
+                    aria-pressed={isPending}
+                    className={`flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition ${
+                      isPending
+                        ? 'border-transparent shadow-soft'
+                        : 'border-taskly-border bg-white hover:border-brand/40'
+                    }`}
+                    style={
+                      isPending
+                        ? {
+                            backgroundColor: `rgb(${t.brand})`,
+                            color: `rgb(${t.ink})`,
+                          }
+                        : undefined
+                    }
+                  >
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                        isPending ? 'border-white/40' : 'border-black/5'
+                      }`}
+                      style={{ backgroundColor: `rgb(${t.brand})` }}
+                      aria-hidden
+                    >
+                      {isPending && (
+                        <CheckIcon className="h-3.5 w-3.5" />
+                      )}
+                    </span>
+                    <span className="text-sm font-semibold">{t.label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => setPendingId(themeId)}
+              disabled={!isDirty}
+              className="text-xs font-semibold text-taskly-muted underline-offset-2 hover:text-taskly-ink hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onSave(pendingId);
+                setOpen(false);
+              }}
+              disabled={!isDirty}
+              className="rounded-full bg-taskly-ink px-4 py-1.5 text-xs font-bold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isDirty ? 'Save theme' : 'Saved'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -162,9 +277,9 @@ function DayGrid({
               onClick={() => onSelectDay(d)}
               className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition ${
                 done
-                  ? "bg-taskly-yellow text-taskly-ink"
+                  ? "bg-brand text-brand-ink"
                   : isActive
-                    ? "bg-taskly-ink text-white ring-2 ring-taskly-yellow ring-offset-1"
+                    ? "bg-taskly-ink text-white ring-2 ring-brand ring-offset-1"
                     : locked
                       ? "bg-neutral-100 text-neutral-300"
                       : "bg-white text-taskly-muted hover:bg-neutral-100"
@@ -214,7 +329,7 @@ function DayDetail({
       </button>
 
       <article className='overflow-hidden rounded-3xl bg-white shadow-card'>
-        <div className={`p-8 ${isDone ? "bg-taskly-yellow" : "bg-white"}`}>
+        <div className={`p-8 ${isDone ? "bg-brand" : "bg-white"}`}>
           <div className='flex items-start justify-between gap-4'>
             <div>
               <span
@@ -222,13 +337,13 @@ function DayDetail({
               >
                 {day.type}
               </span>
-              <p className='mt-3 text-base font-medium text-taskly-muted'>
+              <p className={`mt-3 text-base font-medium ${isDone ? 'text-brand-ink/80' : 'text-taskly-muted'}`}>
                 Day {day.day} · {phaseLabels[phase.id]}
               </p>
-              <h2 className='mt-1 text-4xl font-bold tracking-tight text-taskly-ink'>
+              <h2 className={`mt-1 text-4xl font-bold tracking-tight ${isDone ? 'text-brand-ink' : 'text-taskly-ink'}`}>
                 {day.title}
               </h2>
-              <p className='mt-2 text-base text-taskly-muted'>{day.duration}</p>
+              <p className={`mt-2 text-base ${isDone ? 'text-brand-ink/80' : 'text-taskly-muted'}`}>{day.duration}</p>
             </div>
             <DayIcon type={day.type} />
           </div>
@@ -262,7 +377,7 @@ function DayDetail({
             </p>
           </section>
 
-          <section className='border-l-4 border-taskly-yellow pl-4'>
+          <section className='border-l-4 border-brand pl-4'>
             <h3 className='text-sm font-bold uppercase tracking-wider text-taskly-muted'>
               Coach&apos;s tip
             </h3>
@@ -313,6 +428,8 @@ export default function SpeechTraining() {
     canRecord,
     programStartDate,
     now,
+    themeId,
+    setThemeColor,
   } = useSpeechTrainingProgress();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -393,6 +510,7 @@ export default function SpeechTraining() {
               <p className='mt-1 truncate text-sm font-medium text-taskly-ink'>
                 {user.email}
               </p>
+              <ThemePicker themeId={themeId} onSave={setThemeColor} />
               <button
                 type='button'
                 onClick={async () => {
@@ -425,17 +543,17 @@ export default function SpeechTraining() {
                     }}
                     className={`w-full rounded-2xl p-4 text-left transition ${
                       isActive
-                        ? "bg-taskly-yellow shadow-soft"
+                        ? "bg-brand shadow-soft"
                         : "bg-taskly-surface hover:bg-neutral-100"
                     }`}
                   >
-                    <p className='text-sm font-medium text-taskly-muted'>
+                    <p className={`text-sm font-medium ${isActive ? 'text-brand-ink/80' : 'text-taskly-muted'}`}>
                       {p.subtitle}
                     </p>
-                    <p className='mt-0.5 text-lg font-semibold text-taskly-ink'>
+                    <p className={`mt-0.5 text-lg font-semibold ${isActive ? 'text-brand-ink' : 'text-taskly-ink'}`}>
                       {phaseLabels[p.id]}
                     </p>
-                    <p className='mt-1 text-sm text-taskly-muted'>
+                    <p className={`mt-1 text-sm ${isActive ? 'text-brand-ink/80' : 'text-taskly-muted'}`}>
                       {phaseDone}/{p.days.length} days
                     </p>
                   </button>
@@ -491,7 +609,7 @@ export default function SpeechTraining() {
               <header className='mb-8'>
                 <h1 className='text-4xl font-bold tracking-tight md:text-5xl'>
                   <span className='text-taskly-muted'>Phase schedule — </span>
-                  <span className='text-taskly-yellow'>{phase.subtitle}</span>
+                  <span className='text-brand'>{phase.subtitle}</span>
                 </h1>
                 <p className='mt-2 max-w-lg text-base text-taskly-muted'>
                   {phase.tagline}
@@ -521,19 +639,19 @@ export default function SpeechTraining() {
                         onClick={() => setActiveDay(day)}
                         className={`group flex w-full items-center gap-4 rounded-2xl p-4 text-left transition ${
                           isDone
-                            ? "bg-taskly-yellow shadow-soft hover:bg-taskly-yellow-hover"
+                            ? "bg-brand shadow-soft hover:bg-brand-hover"
                             : isCurrent
-                              ? "border-2 border-taskly-yellow bg-white shadow-card"
+                              ? "border-2 border-brand bg-white shadow-card"
                               : locked
                                 ? "border border-dashed border-neutral-200 bg-neutral-50 opacity-70"
-                                : "border border-taskly-border bg-white shadow-soft hover:border-taskly-yellow/50 hover:shadow-card"
+                                : "border border-taskly-border bg-white shadow-soft hover:border-brand/50 hover:shadow-card"
                         }`}
                       >
                         <span
                           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
                             isDone
                               ? "bg-white/80 text-taskly-ink"
-                              : "bg-taskly-surface text-taskly-muted group-hover:bg-taskly-yellow/30"
+                              : "bg-taskly-surface text-taskly-muted group-hover:bg-brand/30"
                           }`}
                         >
                           {isDone ? (
@@ -548,7 +666,7 @@ export default function SpeechTraining() {
                         {!isDone && <DayIcon type={day.type} />}
 
                         <div className='min-w-0 flex-1'>
-                          <p className='text-lg font-semibold text-taskly-ink'>
+                          <p className={`text-lg font-semibold ${isDone ? 'text-brand-ink' : 'text-taskly-ink'}`}>
                             {day.title}
                           </p>
                           <div className='mt-1.5 flex flex-wrap items-center gap-2'>
@@ -616,7 +734,7 @@ export default function SpeechTraining() {
           </div>
 
           {waitingMessage && !activeDay && (
-            <div className='mt-4 rounded-3xl border border-taskly-yellow/60 bg-taskly-yellow/25 p-5'>
+            <div className='mt-4 rounded-3xl border border-brand/60 bg-brand/25 p-5'>
               <p className='text-sm font-bold uppercase tracking-wider text-taskly-ink/60'>
                 Well done today
               </p>
@@ -627,7 +745,7 @@ export default function SpeechTraining() {
           )}
 
           {currentDayNum && !activeDay && !waitingMessage && (
-            <div className='mt-4 rounded-3xl bg-taskly-yellow p-5'>
+            <div className='mt-4 rounded-3xl bg-brand p-5'>
               <p className='text-sm font-bold uppercase tracking-wider text-taskly-ink/60'>
                 Focus today
               </p>

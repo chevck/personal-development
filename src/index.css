@@ -4,6 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Default accent (matches previous taskly yellow). */
+  --brand: 245 215 110;
+  --brand-hover: 237 203 90;
+  --brand-ink: 28 28 28;
+}
+
 body {
   margin: 0;
   font-family: 'Delius', cursive;

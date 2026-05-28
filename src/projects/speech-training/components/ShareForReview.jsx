@@ -91,7 +91,7 @@ export default function ShareForReview({ day, recording, assessment, disabled })
             type="button"
             onClick={handleShare}
             disabled={disabled || sharing}
-            className="w-full rounded-2xl border-2 border-taskly-yellow bg-taskly-yellow/30 py-3.5 text-base font-bold text-taskly-ink transition hover:bg-taskly-yellow disabled:opacity-50"
+            className="w-full rounded-2xl border-2 border-brand bg-brand/30 py-3.5 text-base font-bold text-taskly-ink transition hover:bg-brand disabled:opacity-50"
           >
             {sharing ? 'Creating link…' : shareUrl ? 'Create new link' : 'Create assessment link'}
           </button>

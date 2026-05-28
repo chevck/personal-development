@@ -11,6 +11,7 @@ module.exports = {
         brand: {
           DEFAULT: 'rgb(var(--brand) / <alpha-value>)',
           hover: 'rgb(var(--brand-hover) / <alpha-value>)',
+          ink: 'rgb(var(--brand-ink) / <alpha-value>)',
         },
         speakly: {
           coral: '#D95D39',

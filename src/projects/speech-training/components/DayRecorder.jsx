@@ -185,13 +185,13 @@ export default function DayRecorder({
   }
 
   return (
-    <section className="rounded-2xl border-2 border-taskly-yellow/40 bg-taskly-surface p-5">
+    <section className="rounded-2xl border-2 border-brand/40 bg-taskly-surface p-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-bold uppercase tracking-wider text-taskly-ink">
           Record your practice
         </h3>
         {isApproved ? (
-          <span className="rounded-full bg-taskly-yellow px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-taskly-ink">
+          <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-brand-ink">
             Complete
           </span>
         ) : isSaved ? (
@@ -235,7 +235,7 @@ export default function DayRecorder({
       )}
 
       {status === 'preview' && previewUrl && (
-        <div className="mt-4 rounded-xl border-2 border-taskly-yellow/60 bg-white p-4 shadow-soft">
+        <div className="mt-4 rounded-xl border-2 border-brand/60 bg-white p-4 shadow-soft">
           <p className="mb-2 text-sm font-semibold text-taskly-ink">
             Listen before saving · {formatDuration(previewDurationMs)}
           </p>
@@ -267,7 +267,7 @@ export default function DayRecorder({
             <button
               type="button"
               onClick={stopRecording}
-              className="rounded-2xl bg-taskly-yellow px-6 py-4 text-base font-bold text-taskly-ink transition hover:bg-taskly-yellow-hover"
+              className="rounded-2xl bg-brand px-6 py-4 text-base font-bold text-brand-ink transition hover:bg-brand-hover"
             >
               Stop
             </button>
@@ -276,7 +276,7 @@ export default function DayRecorder({
 
         {isUploading && (
           <div className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white py-4 text-base font-medium text-taskly-muted">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-taskly-yellow border-t-transparent" />
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand border-t-transparent" />
             Saving your recording…
           </div>
         )}

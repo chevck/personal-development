@@ -111,7 +111,7 @@ export default function SpeechTrainingLogin() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="mt-2 w-full rounded-2xl border border-taskly-border bg-white px-4 py-3 text-base outline-none ring-taskly-yellow focus:border-taskly-yellow focus:ring-2"
+                  className="mt-2 w-full rounded-2xl border border-taskly-border bg-white px-4 py-3 text-base outline-none ring-brand focus:border-brand focus:ring-2"
                 />
               </label>
 
@@ -128,7 +128,7 @@ export default function SpeechTrainingLogin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={isRegister ? 'At least 6 characters' : 'Your password'}
-                  className="mt-2 w-full rounded-2xl border border-taskly-border bg-white px-4 py-3 text-base outline-none ring-taskly-yellow focus:border-taskly-yellow focus:ring-2"
+                  className="mt-2 w-full rounded-2xl border border-taskly-border bg-white px-4 py-3 text-base outline-none ring-brand focus:border-brand focus:ring-2"
                 />
               </label>
 
@@ -146,7 +146,7 @@ export default function SpeechTrainingLogin() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repeat your password"
-                    className="mt-2 w-full rounded-2xl border border-taskly-border bg-white px-4 py-3 text-base outline-none ring-taskly-yellow focus:border-taskly-yellow focus:ring-2"
+                    className="mt-2 w-full rounded-2xl border border-taskly-border bg-white px-4 py-3 text-base outline-none ring-brand focus:border-brand focus:ring-2"
                   />
                 </label>
               )}

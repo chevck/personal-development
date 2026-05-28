@@ -1,24 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { doc, onSnapshot } from 'firebase/firestore';
-import AppLogo from '../components/AppLogo';
-import RecordingPlayer from '../components/RecordingPlayer';
-import { SPEECH_TRAINING_PROJECT_ID } from '../config/projects';
-import { db, isFirebaseConfigured } from '../firebase/config';
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { doc, onSnapshot } from "firebase/firestore";
+import AppLogo from "../components/AppLogo";
+import RecordingPlayer from "../components/RecordingPlayer";
+import { SPEECH_TRAINING_PROJECT_ID } from "../config/projects";
+import { db, isFirebaseConfigured } from "../firebase/config";
 import {
   resolveSubmissionDocId,
   submitAssessmentReview,
-} from '../lib/speechTrainingAssessments';
+} from "../lib/speechTrainingAssessments";
 
 function formatDuration(ms) {
   if (!ms) return null;
   const totalSec = Math.floor(ms / 1000);
   const m = Math.floor(totalSec / 60);
   const s = totalSec % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-const SUBMISSIONS_PATH = 'projects/speech-training/submissions';
+const SUBMISSIONS_PATH = "projects/speech-training/submissions";
 
 export default function AssessSubmission() {
   const params = useParams();
@@ -30,27 +30,32 @@ export default function AssessSubmission() {
         daySegment: params.daySegment,
         recordingSegment: params.recordingSegment,
       }),
-    [params.shareId, params.userCode, params.daySegment, params.recordingSegment]
+    [
+      params.shareId,
+      params.userCode,
+      params.daySegment,
+      params.recordingSegment,
+    ],
   );
 
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [assessorName, setAssessorName] = useState('');
+  const [assessorName, setAssessorName] = useState("");
   const [score, setScore] = useState(null);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (!isFirebaseConfigured || !db) {
-      setError('Firebase is not configured.');
+      setError("Firebase is not configured.");
       setLoading(false);
       return undefined;
     }
 
     if (!submissionDocId) {
-      setError('This assessment link is invalid or has expired.');
+      setError("This assessment link is invalid or has expired.");
       setLoading(false);
       return undefined;
     }
@@ -60,24 +65,26 @@ export default function AssessSubmission() {
       ref,
       (snap) => {
         if (!snap.exists()) {
-          setError('This assessment link is invalid or has expired.');
+          setError("This assessment link is invalid or has expired.");
           setSubmission(null);
         } else {
           const data = { id: snap.id, ...snap.data() };
           setSubmission(data);
           setError(null);
-          if (data.status === 'reviewed') {
+          if (data.status === "reviewed") {
             setSubmitted(true);
-          } else if (data.status === 'superseded') {
-            setError('This link is no longer active. The student shared a newer recording.');
+          } else if (data.status === "superseded") {
+            setError(
+              "This link is no longer active. The student shared a newer recording.",
+            );
           }
         }
         setLoading(false);
       },
       () => {
-        setError('Could not load submission.');
+        setError("Could not load submission.");
         setLoading(false);
-      }
+      },
     );
 
     return unsubscribe;
@@ -93,10 +100,10 @@ export default function AssessSubmission() {
         comment,
         assessorName,
       });
-      setSubmission((prev) => ({ ...prev, status: 'reviewed', review }));
+      setSubmission((prev) => ({ ...prev, status: "reviewed", review }));
       setSubmitted(true);
     } catch (err) {
-      setError(err.message || 'Could not submit review.');
+      setError(err.message || "Could not submit review.");
     } finally {
       setSubmitting(false);
     }
@@ -104,65 +111,77 @@ export default function AssessSubmission() {
 
   if (loading) {
     return (
-      <div className="speakly-app flex min-h-screen flex-col items-center justify-center gap-4 bg-white p-6 font-speakly">
-        <AppLogo projectId={SPEECH_TRAINING_PROJECT_ID} variant="icon" size="lg" />
-        <p className="text-lg text-taskly-muted">Loading submission…</p>
+      <div className='speakly-app flex min-h-screen flex-col items-center justify-center gap-4 bg-white p-6 font-speakly'>
+        <AppLogo
+          projectId={SPEECH_TRAINING_PROJECT_ID}
+          variant='icon'
+          size='lg'
+        />
+        <p className='text-lg text-taskly-muted'>Loading submission…</p>
       </div>
     );
   }
 
   if (error && !submission) {
     return (
-      <div className="speakly-app flex min-h-screen items-center justify-center bg-white p-6 font-speakly">
-        <p className="text-lg text-red-600">{error}</p>
+      <div className='speakly-app flex min-h-screen items-center justify-center bg-white p-6 font-speakly'>
+        <p className='text-lg text-red-600'>{error}</p>
       </div>
     );
   }
 
   const review = submission?.review;
   const isClosed =
-    submission?.status === 'reviewed' ||
-    submission?.status === 'superseded' ||
+    submission?.status === "reviewed" ||
+    submission?.status === "superseded" ||
     submitted;
   const isScoreSelected = Number.isFinite(score);
 
   return (
-    <div className="speakly-app min-h-screen bg-white font-speakly text-taskly-ink">
-      <div className="mx-auto max-w-2xl px-6 py-10">
-        <AppLogo projectId={SPEECH_TRAINING_PROJECT_ID} variant="logo" size="md" className="mb-6" />
-        <p className="text-sm font-semibold uppercase tracking-wider text-taskly-muted">
+    <div className='speakly-app min-h-screen bg-white font-speakly text-taskly-ink'>
+      <div className='mx-auto max-w-2xl px-6 py-10'>
+        <AppLogo
+          projectId={SPEECH_TRAINING_PROJECT_ID}
+          variant='logo'
+          size='md'
+          className='mb-6'
+        />
+        <p className='text-sm font-semibold uppercase tracking-wider text-taskly-muted'>
           Assessment
         </p>
-        <h1 className="mt-2 text-4xl font-bold text-taskly-ink">
+        <h1 className='mt-2 text-4xl font-bold text-taskly-ink'>
           Day {submission.dayNum}: {submission.dayTitle}
         </h1>
-        <p className="mt-2 text-base text-taskly-muted">
+        <p className='mt-2 text-base text-taskly-muted'>
           {submission.dayType} · {submission.duration}
         </p>
 
-        <p className="mt-4 rounded-xl bg-taskly-surface px-4 py-3 text-sm text-taskly-muted">
-          Only one assessor can submit a review on this link. If the student shared it with
-          several people, the first submission closes it for everyone else.
+        <p className='mt-4 rounded-xl bg-taskly-surface px-4 py-3 text-sm text-taskly-muted'>
+          Only one assessor can submit a review on this link. If the student
+          shared it with several people, the first submission closes it for
+          everyone else.
         </p>
 
-        <section className="mt-8 rounded-3xl bg-taskly-surface p-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-taskly-muted">
+        <section className='mt-8 rounded-3xl bg-taskly-surface p-6'>
+          <h2 className='text-sm font-bold uppercase tracking-wider text-taskly-muted'>
             The exercise
           </h2>
-          <p className="mt-2 text-base leading-relaxed">{submission.exercise}</p>
+          <p className='mt-2 text-base leading-relaxed'>
+            {submission.exercise}
+          </p>
         </section>
 
-        <section className="mt-6 rounded-3xl bg-white p-6 shadow-card">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-taskly-ink">
+        <section className='mt-6 rounded-3xl bg-white p-6 shadow-card'>
+          <h2 className='text-sm font-bold uppercase tracking-wider text-taskly-ink'>
             Student recording
           </h2>
           {submission.recording?.durationMs != null && (
-            <p className="mt-1 text-sm text-taskly-muted">
+            <p className='mt-1 text-sm text-taskly-muted'>
               Duration: {formatDuration(submission.recording.durationMs)}
             </p>
           )}
           <RecordingPlayer
-            className="mt-4"
+            className='mt-4'
             src={submission.recording?.downloadUrl}
             mimeType={submission.recording?.mimeType}
           />
@@ -172,71 +191,83 @@ export default function AssessSubmission() {
           <section
             className={`mt-6 rounded-3xl p-6 ${
               review.requiresRedo
-                ? 'border-2 border-red-300 bg-red-50'
-                : 'border border-emerald-200 bg-emerald-50'
+                ? "border-2 border-red-300 bg-red-50"
+                : "border border-emerald-200 bg-emerald-50"
             }`}
           >
-            <p className="text-sm font-bold uppercase tracking-wider">
-              {review.requiresRedo ? 'Redo requested' : 'Review submitted'}
+            <p className='text-sm font-bold uppercase tracking-wider'>
+              {review.requiresRedo ? "Redo requested" : "Review submitted"}
             </p>
-            <p className="mt-2 text-base text-taskly-muted">
+            <p className='mt-2 text-base text-taskly-muted'>
               Reviewed by <strong>{review.assessorName}</strong>
             </p>
-            <p className="mt-2 text-lg">
+            <p className='mt-2 text-lg'>
               Score: <strong>{review.score}/10</strong>
             </p>
             {review.comment && (
-              <p className="mt-3 text-base leading-relaxed">&ldquo;{review.comment}&rdquo;</p>
+              <p className='mt-3 text-base leading-relaxed'>
+                &ldquo;{review.comment}&rdquo;
+              </p>
             )}
             {review.requiresRedo && (
-              <p className="mt-3 text-base font-semibold text-red-800">
-                Scores below 5 automatically require the student to record again.
+              <p className='mt-3 text-base font-semibold text-red-800'>
+                Scores below 5 automatically require the student to record
+                again.
               </p>
             )}
           </section>
-        ) : submission?.status === 'superseded' ? (
-          <section className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-6">
-            <p className="text-base text-taskly-muted">
+        ) : submission?.status === "superseded" ? (
+          <section className='mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-6'>
+            <p className='text-base text-taskly-muted'>
               This link has been replaced by a newer recording from the student.
             </p>
           </section>
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="mt-6 space-y-6 rounded-3xl bg-white p-6 shadow-card"
+            className='mt-6 space-y-6 rounded-3xl bg-white p-6 shadow-card'
           >
-            <h2 className="text-sm font-bold uppercase tracking-wider text-taskly-ink">
+            <h2 className='text-sm font-bold uppercase tracking-wider text-taskly-ink'>
               Your assessment
             </h2>
 
             {error && (
-              <p className="rounded-xl bg-red-50 px-3 py-2 text-base text-red-600">{error}</p>
+              <p className='rounded-xl bg-red-50 px-3 py-2 text-base text-red-600'>
+                {error}
+              </p>
             )}
 
-            <label className="block">
-              <span className="text-sm font-semibold text-taskly-muted">Your name (optional)</span>
+            <label className='block'>
+              <span className='text-sm font-semibold text-taskly-muted'>
+                Your name (optional)
+              </span>
               <input
-                type="text"
+                type='text'
                 value={assessorName}
                 onChange={(e) => setAssessorName(e.target.value)}
-                placeholder="Coach, teacher, mentor…"
-                className="mt-2 w-full rounded-xl border border-taskly-border px-4 py-3 text-base outline-none focus:border-taskly-yellow"
+                placeholder='Coach, teacher, mentor…'
+                className='mt-2 w-full rounded-xl border border-taskly-border px-4 py-3 text-base outline-none focus:border-brand'
               />
             </label>
 
-            <label className="block">
-              <span className="text-sm font-semibold text-taskly-muted">
+            <label className='block'>
+              <span className='text-sm font-semibold text-taskly-muted'>
                 Score (pick one, 1–10)
               </span>
-              <p className="mt-1 text-sm text-taskly-muted">
-                Scores below 5 automatically require the student to record again.
+              <p className='mt-1 text-sm text-taskly-muted'>
+                Scores below 5 automatically require the student to record
+                again.
               </p>
-              <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-5">
+              <div className='mt-3 grid grid-cols-3 gap-3 sm:grid-cols-5'>
                 {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
                   const selected = score === n;
                   const isRedo = n < 5;
                   const isPass = n > 5;
-                  const intensity = isRedo ? (5 - n) / 4 : isPass ? (n - 5) / 5 : 0; // 0..1
+                  const intensity = isRedo
+                    ? (5 - n) / 4
+                    : isPass
+                      ? (n - 5) / 5
+                      : 0; // 0..1
 
                   // Use HSL so the ramp goes from light → deep (and vice versa).
                   const backgroundColor = isRedo
@@ -245,16 +276,22 @@ export default function AssessSubmission() {
                       ? `hsl(142 70% ${92 - intensity * 38}%)` // 6 light → 10 deep
                       : `hsl(45 95% 85%)`;
                   const borderColor = backgroundColor;
+                  const selectedTextIsWhite =
+                    selected && (n === 1 || n === 2 || n === 9 || n === 10);
                   return (
                     <button
                       key={n}
-                      type="button"
+                      type='button'
                       onClick={() => setScore(n)}
-                      style={selected ? { backgroundColor, borderColor } : undefined}
-                      className={`h-12 rounded-2xl border px-4 text-lg font-bold tabular-nums transition ${
+                      style={
                         selected
-                          ? 'text-taskly-ink ring-2 ring-taskly-yellow'
-                          : 'border-taskly-border bg-white text-taskly-ink hover:border-taskly-yellow'
+                          ? { backgroundColor, borderColor }
+                          : { backgroundColor: "white", borderColor: "white" }
+                      }
+                      className={`h-12 rounded-2xl border px-4 text-lg font-bold tabular-nums shadow-soft transition ${
+                        selected
+                          ? `${selectedTextIsWhite ? "text-white" : "text-taskly-ink"}`
+                          : "text-taskly-ink hover:ring-2 hover:ring-brand/30"
                       }`}
                       aria-pressed={selected}
                     >
@@ -265,23 +302,25 @@ export default function AssessSubmission() {
               </div>
             </label>
 
-            <label className="block">
-              <span className="text-sm font-semibold text-taskly-muted">Feedback (optional)</span>
+            <label className='block'>
+              <span className='text-sm font-semibold text-taskly-muted'>
+                Feedback (optional)
+              </span>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={4}
-                placeholder="What went well? What should they practice?"
-                className="mt-2 w-full rounded-xl border border-taskly-border px-4 py-3 text-base outline-none focus:border-taskly-yellow"
+                placeholder='What went well? What should they practice?'
+                className='mt-2 w-full rounded-xl border border-taskly-border px-4 py-3 text-base outline-none focus:border-brand'
               />
             </label>
 
             <button
-              type="submit"
+              type='submit'
               disabled={submitting || !isScoreSelected}
-              className="w-full rounded-full bg-taskly-yellow py-3.5 text-base font-bold text-taskly-ink transition hover:brightness-95 disabled:opacity-50"
+              className='w-full rounded-full bg-brand py-3.5 text-base font-bold text-brand-ink transition hover:bg-brand-hover disabled:opacity-50'
             >
-              {submitting ? 'Submitting…' : 'Submit review'}
+              {submitting ? "Submitting…" : "Submit review"}
             </button>
           </form>
         )}
