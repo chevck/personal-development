@@ -22,6 +22,34 @@ function formatDuration(ms) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+function LearnerReasonsSection({ submission }) {
+  const reasons = Array.isArray(submission?.learnerReasons)
+    ? submission.learnerReasons.filter(Boolean)
+    : [];
+  if (reasons.length === 0) return null;
+
+  return (
+    <section className="rounded-2xl border border-speakly-coral-ring bg-white p-4 sm:p-5">
+      <h2 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
+        Why they&apos;re using Speakly
+      </h2>
+      <p className="mt-1 text-sm text-taskly-muted">
+        Context from the learner — use this to tailor your feedback.
+      </p>
+      <ul className="mt-3 flex flex-wrap gap-2">
+        {reasons.map((reason) => (
+          <li
+            key={reason}
+            className="rounded-full bg-speakly-coral-light px-3 py-1.5 text-sm font-medium text-speakly-coral-dark"
+          >
+            {reason}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 const SUBMISSIONS_PATH = 'projects/speech-training/submissions';
 
 export default function AssessSubmission() {
@@ -153,9 +181,6 @@ export default function AssessSubmission() {
   const isScoreSelected = Number.isFinite(score);
   const attemptLabel =
     submission?.recordingNum > 1 ? ` · Attempt ${submission.recordingNum}` : '';
-  const learnerReasons = Array.isArray(submission?.learnerReasons)
-    ? submission.learnerReasons.filter(Boolean)
-    : [];
 
   return (
     <div className="speakly-app min-h-screen bg-gradient-to-b from-speakly-coral-light via-white to-speakly-coral-muted/40 font-speakly text-speakly-ink">
@@ -197,26 +222,7 @@ export default function AssessSubmission() {
               for everyone else.
             </p>
 
-            {learnerReasons.length > 0 && (
-              <section className="rounded-2xl border border-speakly-coral-ring bg-white p-4 sm:p-5">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
-                  Why they&apos;re using Speakly
-                </h2>
-                <p className="mt-1 text-sm text-taskly-muted">
-                  Context from the learner — use this to tailor your feedback.
-                </p>
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {learnerReasons.map((reason) => (
-                    <li
-                      key={reason}
-                      className="rounded-full bg-speakly-coral-light px-3 py-1.5 text-sm font-medium text-speakly-coral-dark"
-                    >
-                      {reason}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
+            <LearnerReasonsSection submission={submission} />
 
             {submission.description && (
               <section>

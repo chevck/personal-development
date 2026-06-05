@@ -1,5 +1,6 @@
 const publicUrl = process.env.PUBLIC_URL || '';
 
+/** Sculpture mark on black — icon and logo use the same asset. */
 export const PERSONA_BRANDING = {
   id: 'persona',
   name: 'Persona',

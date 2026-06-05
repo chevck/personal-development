@@ -1,5 +1,4 @@
 import {
-  formatDateKey,
   getActivePhaseIndex,
   getActiveWeekIndex,
   getMaxCalendarDay,
