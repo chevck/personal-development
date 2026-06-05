@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ScrollToTop from "./components/ScrollToTop";
 import SpeaklyLearnerRoute from "./components/speakly/SpeaklyLearnerRoute";
 import PersonaLanding from "./pages/PersonaLanding";
 import SpeaklyLanding from "./pages/speech-training/SpeaklyLanding";
@@ -12,6 +13,7 @@ import SpeechTraining from "./projects/speech-training/SpeechTraining";
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path='/' element={<PersonaLanding />} />
         <Route path='/speakly/welcome' element={<SpeaklyLanding />} />
