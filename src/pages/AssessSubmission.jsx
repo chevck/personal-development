@@ -1,27 +1,32 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { doc, onSnapshot } from "firebase/firestore";
-import AppLogo from "../components/AppLogo";
-import RecordingPlayer from "../components/RecordingPlayer";
-import { SPEECH_TRAINING_PROJECT_ID } from "../config/projects";
-import { db, isFirebaseConfigured } from "../firebase/config";
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { doc, onSnapshot } from 'firebase/firestore';
+import AppLogo from '../components/AppLogo';
+import RecordingPlayer from '../components/RecordingPlayer';
+import SpeaklyWaveformDecor from '../components/speakly/SpeaklyWaveformDecor';
+import { SPEECH_TRAINING_PROJECT_ID } from '../config/projects';
+import { db, isFirebaseConfigured } from '../firebase/config';
 import {
   resolveSubmissionDocId,
   submitAssessmentReview,
-} from "../lib/speechTrainingAssessments";
+} from '../lib/speechTrainingAssessments';
+
+const inputClassName =
+  'mt-2 w-full rounded-2xl border-0 bg-white px-4 py-3.5 text-base text-speakly-ink shadow-[0_2px_12px_rgba(0,0,0,0.06)] outline-none ring-1 ring-speakly-coral-ring/80 transition focus:ring-2 focus:ring-speakly-coral';
 
 function formatDuration(ms) {
   if (!ms) return null;
   const totalSec = Math.floor(ms / 1000);
   const m = Math.floor(totalSec / 60);
   const s = totalSec % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-const SUBMISSIONS_PATH = "projects/speech-training/submissions";
+const SUBMISSIONS_PATH = 'projects/speech-training/submissions';
 
 export default function AssessSubmission() {
   const params = useParams();
+  const [searchParams] = useSearchParams();
   const submissionDocId = useMemo(
     () =>
       resolveSubmissionDocId({
@@ -29,33 +34,37 @@ export default function AssessSubmission() {
         userCode: params.userCode,
         daySegment: params.daySegment,
         recordingSegment: params.recordingSegment,
+        recordingNum: params.recordingNum,
+        shareCode: searchParams.get('c'),
       }),
     [
       params.shareId,
       params.userCode,
       params.daySegment,
       params.recordingSegment,
+      params.recordingNum,
+      searchParams,
     ],
   );
 
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [assessorName, setAssessorName] = useState("");
+  const [assessorName, setAssessorName] = useState('');
   const [score, setScore] = useState(null);
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (!isFirebaseConfigured || !db) {
-      setError("Firebase is not configured.");
+      setError('Firebase is not configured.');
       setLoading(false);
       return undefined;
     }
 
     if (!submissionDocId) {
-      setError("This assessment link is invalid or has expired.");
+      setError('This assessment link is invalid or has expired.');
       setLoading(false);
       return undefined;
     }
@@ -65,24 +74,22 @@ export default function AssessSubmission() {
       ref,
       (snap) => {
         if (!snap.exists()) {
-          setError("This assessment link is invalid or has expired.");
+          setError('This assessment link is invalid or has expired.');
           setSubmission(null);
         } else {
           const data = { id: snap.id, ...snap.data() };
           setSubmission(data);
           setError(null);
-          if (data.status === "reviewed") {
+          if (data.status === 'reviewed') {
             setSubmitted(true);
-          } else if (data.status === "superseded") {
-            setError(
-              "This link is no longer active. The student shared a newer recording.",
-            );
+          } else if (data.status === 'superseded') {
+            setError('This link is no longer active. The student shared a newer recording.');
           }
         }
         setLoading(false);
       },
       () => {
-        setError("Could not load submission.");
+        setError('Could not load submission.');
         setLoading(false);
       },
     );
@@ -100,10 +107,10 @@ export default function AssessSubmission() {
         comment,
         assessorName,
       });
-      setSubmission((prev) => ({ ...prev, status: "reviewed", review }));
+      setSubmission((prev) => ({ ...prev, status: 'reviewed', review }));
       setSubmitted(true);
     } catch (err) {
-      setError(err.message || "Could not submit review.");
+      setError(err.message || 'Could not submit review.');
     } finally {
       setSubmitting(false);
     }
@@ -111,220 +118,268 @@ export default function AssessSubmission() {
 
   if (loading) {
     return (
-      <div className='speakly-app flex min-h-screen flex-col items-center justify-center gap-4 bg-white p-6 font-speakly'>
-        <AppLogo
-          projectId={SPEECH_TRAINING_PROJECT_ID}
-          variant='icon'
-          size='lg'
-        />
-        <p className='text-lg text-taskly-muted'>Loading submission…</p>
+      <div className="speakly-app flex min-h-screen flex-col items-center justify-center gap-5 bg-gradient-to-b from-speakly-coral-light via-white to-speakly-coral-muted/40 p-6 font-speakly">
+        <div className="relative flex h-20 w-20 items-center justify-center">
+          <span
+            className="app-loader-ring absolute inset-0 rounded-[1.4rem] border-2 border-speakly-coral/50"
+            aria-hidden
+          />
+          <AppLogo projectId={SPEECH_TRAINING_PROJECT_ID} variant="icon" size="lg" />
+        </div>
+        <p className="text-base font-semibold text-taskly-muted">Loading submission…</p>
       </div>
     );
   }
 
   if (error && !submission) {
     return (
-      <div className='speakly-app flex min-h-screen items-center justify-center bg-white p-6 font-speakly'>
-        <p className='text-lg text-red-600'>{error}</p>
+      <div className="speakly-app flex min-h-screen items-center justify-center bg-gradient-to-b from-speakly-coral-light via-white to-speakly-coral-muted/40 p-6 font-speakly">
+        <div className="card-speakly max-w-md p-8 text-center">
+          <p className="text-lg text-red-600">{error}</p>
+          <Link
+            to="/speakly/welcome"
+            className="btn-speakly-primary mt-6 inline-flex"
+          >
+            About Speakly
+          </Link>
+        </div>
       </div>
     );
   }
 
   const review = submission?.review;
   const isClosed =
-    submission?.status === "reviewed" ||
-    submission?.status === "superseded" ||
-    submitted;
+    submission?.status === 'reviewed' || submission?.status === 'superseded' || submitted;
   const isScoreSelected = Number.isFinite(score);
+  const attemptLabel =
+    submission?.recordingNum > 1 ? ` · Attempt ${submission.recordingNum}` : '';
+  const learnerReasons = Array.isArray(submission?.learnerReasons)
+    ? submission.learnerReasons.filter(Boolean)
+    : [];
 
   return (
-    <div className='speakly-app min-h-screen bg-white font-speakly text-taskly-ink'>
-      <div className='mx-auto max-w-2xl px-6 py-10'>
-        <AppLogo
-          projectId={SPEECH_TRAINING_PROJECT_ID}
-          variant='logo'
-          size='md'
-          className='mb-6'
-        />
-        <p className='text-sm font-semibold uppercase tracking-wider text-taskly-muted'>
-          Assessment
-        </p>
-        <h1 className='mt-2 text-4xl font-bold text-taskly-ink'>
-          Day {submission.dayNum}: {submission.dayTitle}
-        </h1>
-        <p className='mt-2 text-base text-taskly-muted'>
-          {submission.dayType} · {submission.duration}
-        </p>
-
-        <p className='mt-4 rounded-xl bg-taskly-surface px-4 py-3 text-sm text-taskly-muted'>
-          Only one assessor can submit a review on this link. If the student
-          shared it with several people, the first submission closes it for
-          everyone else.
-        </p>
-
-        <section className='mt-8 rounded-3xl bg-taskly-surface p-6'>
-          <h2 className='text-sm font-bold uppercase tracking-wider text-taskly-muted'>
-            The exercise
-          </h2>
-          <p className='mt-2 text-base leading-relaxed'>
-            {submission.exercise}
-          </p>
-        </section>
-
-        <section className='mt-6 rounded-3xl bg-white p-6 shadow-card'>
-          <h2 className='text-sm font-bold uppercase tracking-wider text-taskly-ink'>
-            Student recording
-          </h2>
-          {submission.recording?.durationMs != null && (
-            <p className='mt-1 text-sm text-taskly-muted'>
-              Duration: {formatDuration(submission.recording.durationMs)}
-            </p>
-          )}
-          <RecordingPlayer
-            className='mt-4'
-            src={submission.recording?.downloadUrl}
-            mimeType={submission.recording?.mimeType}
-          />
-        </section>
-
-        {isClosed && review ? (
-          <section
-            className={`mt-6 rounded-3xl p-6 ${
-              review.requiresRedo
-                ? "border-2 border-red-300 bg-red-50"
-                : "border border-emerald-200 bg-emerald-50"
-            }`}
+    <div className="speakly-app min-h-screen bg-gradient-to-b from-speakly-coral-light via-white to-speakly-coral-muted/40 font-speakly text-speakly-ink">
+      <header className="border-b border-speakly-coral-ring/40 bg-white/80 px-4 py-3 backdrop-blur-md sm:px-6 sm:py-4">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 sm:gap-4">
+          <AppLogo projectId={SPEECH_TRAINING_PROJECT_ID} variant="logo" size="md" linkTo="/" />
+          <Link
+            to="/speakly/welcome"
+            className="shrink-0 text-xs font-semibold text-taskly-muted hover:text-speakly-coral sm:text-sm"
           >
-            <p className='text-sm font-bold uppercase tracking-wider'>
-              {review.requiresRedo ? "Redo requested" : "Review submitted"}
+            About Speakly
+          </Link>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
+        <div className="dash-in card-speakly overflow-hidden">
+          <div className="bg-gradient-to-br from-speakly-coral to-speakly-coral-dark p-5 text-white sm:p-6 md:p-8">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/80 sm:text-sm">
+              Speakly assessment
             </p>
-            <p className='mt-2 text-base text-taskly-muted'>
-              Reviewed by <strong>{review.assessorName}</strong>
+            <h1 className="font-display mt-2 text-2xl font-normal tracking-tight sm:text-3xl md:text-4xl">
+              Day {submission.dayNum}: {submission.dayTitle}
+            </h1>
+            <p className="mt-2 text-sm text-white/85 sm:text-base">
+              {submission.dayType} · {submission.duration}
+              {attemptLabel}
             </p>
-            <p className='mt-2 text-lg'>
-              Score: <strong>{review.score}/10</strong>
-            </p>
-            {review.comment && (
-              <p className='mt-3 text-base leading-relaxed'>
-                &ldquo;{review.comment}&rdquo;
+            {submission.learnerName && (
+              <p className="mt-3 text-sm text-white/90 sm:text-base">
+                From <strong>{submission.learnerName}</strong>
               </p>
             )}
-            {review.requiresRedo && (
-              <p className='mt-3 text-base font-semibold text-red-800'>
-                Scores below 5 automatically require the student to record
-                again.
-              </p>
-            )}
-          </section>
-        ) : submission?.status === "superseded" ? (
-          <section className='mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-6'>
-            <p className='text-base text-taskly-muted'>
-              This link has been replaced by a newer recording from the student.
+          </div>
+
+          <div className="space-y-5 p-4 sm:space-y-6 sm:p-6 md:p-8">
+            <p className="rounded-2xl bg-speakly-coral-light px-4 py-3 text-sm text-speakly-coral-dark">
+              Only one assessor can submit a review on this link. The first submission closes it
+              for everyone else.
             </p>
-          </section>
-        ) : (
-          <form
-            onSubmit={handleSubmit}
-            className='mt-6 space-y-6 rounded-3xl bg-white p-6 shadow-card'
-          >
-            <h2 className='text-sm font-bold uppercase tracking-wider text-taskly-ink'>
-              Your assessment
-            </h2>
 
-            {error && (
-              <p className='rounded-xl bg-red-50 px-3 py-2 text-base text-red-600'>
-                {error}
-              </p>
-            )}
-
-            <label className='block'>
-              <span className='text-sm font-semibold text-taskly-muted'>
-                Your name (optional)
-              </span>
-              <input
-                type='text'
-                value={assessorName}
-                onChange={(e) => setAssessorName(e.target.value)}
-                placeholder='Coach, teacher, mentor…'
-                className='mt-2 w-full rounded-xl border border-taskly-border px-4 py-3 text-base outline-none focus:border-brand'
-              />
-            </label>
-
-            <label className='block'>
-              <span className='text-sm font-semibold text-taskly-muted'>
-                Score (pick one, 1–10)
-              </span>
-              <p className='mt-1 text-sm text-taskly-muted'>
-                Scores below 5 automatically require the student to record
-                again.
-              </p>
-              <div className='mt-3 grid grid-cols-3 gap-3 sm:grid-cols-5'>
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
-                  const selected = score === n;
-                  const isRedo = n < 5;
-                  const isPass = n > 5;
-                  const intensity = isRedo
-                    ? (5 - n) / 4
-                    : isPass
-                      ? (n - 5) / 5
-                      : 0; // 0..1
-
-                  // Use HSL so the ramp goes from light → deep (and vice versa).
-                  const backgroundColor = isRedo
-                    ? `hsl(0 80% ${92 - intensity * 38}%)` // 4 light → 1 deep
-                    : isPass
-                      ? `hsl(142 70% ${92 - intensity * 38}%)` // 6 light → 10 deep
-                      : `hsl(45 95% 85%)`;
-                  const borderColor = backgroundColor;
-                  const selectedTextIsWhite =
-                    selected && (n === 1 || n === 2 || n === 9 || n === 10);
-                  return (
-                    <button
-                      key={n}
-                      type='button'
-                      onClick={() => setScore(n)}
-                      style={
-                        selected
-                          ? { backgroundColor, borderColor }
-                          : { backgroundColor: "white", borderColor: "white" }
-                      }
-                      className={`h-12 rounded-2xl border px-4 text-lg font-bold tabular-nums shadow-soft transition ${
-                        selected
-                          ? `${selectedTextIsWhite ? "text-white" : "text-taskly-ink"}`
-                          : "text-taskly-ink hover:ring-2 hover:ring-brand/30"
-                      }`}
-                      aria-pressed={selected}
+            {learnerReasons.length > 0 && (
+              <section className="rounded-2xl border border-speakly-coral-ring bg-white p-4 sm:p-5">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
+                  Why they&apos;re using Speakly
+                </h2>
+                <p className="mt-1 text-sm text-taskly-muted">
+                  Context from the learner — use this to tailor your feedback.
+                </p>
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {learnerReasons.map((reason) => (
+                    <li
+                      key={reason}
+                      className="rounded-full bg-speakly-coral-light px-3 py-1.5 text-sm font-medium text-speakly-coral-dark"
                     >
-                      {n}
-                    </button>
-                  );
-                })}
-              </div>
-            </label>
+                      {reason}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
-            <label className='block'>
-              <span className='text-sm font-semibold text-taskly-muted'>
-                Feedback (optional)
-              </span>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={4}
-                placeholder='What went well? What should they practice?'
-                className='mt-2 w-full rounded-xl border border-taskly-border px-4 py-3 text-base outline-none focus:border-brand'
+            {submission.description && (
+              <section>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
+                  Today&apos;s practice
+                </h2>
+                <p className="mt-2 text-base leading-relaxed text-speakly-ink/90">
+                  {submission.description}
+                </p>
+              </section>
+            )}
+
+            <section className="rounded-2xl bg-speakly-coral-light p-5">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
+                The exercise
+              </h2>
+              <p className="mt-2 text-base leading-relaxed text-speakly-ink/90">
+                {submission.exercise}
+              </p>
+            </section>
+
+            <section className="card-speakly border p-5">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
+                Student recording
+              </h2>
+              {submission.recording?.durationMs != null && (
+                <p className="mt-1 text-sm text-taskly-muted">
+                  Duration: {formatDuration(submission.recording.durationMs)}
+                </p>
+              )}
+              <RecordingPlayer
+                className="mt-4"
+                src={submission.recording?.downloadUrl}
+                mimeType={submission.recording?.mimeType}
+                autoPlay
               />
-            </label>
+            </section>
 
-            <button
-              type='submit'
-              disabled={submitting || !isScoreSelected}
-              className='w-full rounded-full bg-brand py-3.5 text-base font-bold text-brand-ink transition hover:bg-brand-hover disabled:opacity-50'
-            >
-              {submitting ? "Submitting…" : "Submit review"}
-            </button>
-          </form>
-        )}
-      </div>
+            {isClosed && review ? (
+              <section
+                className={`rounded-2xl p-6 ${
+                  review.requiresRedo
+                    ? 'border-2 border-red-300 bg-red-50'
+                    : 'border-2 border-emerald-200 bg-emerald-50'
+                }`}
+              >
+                <p className="text-sm font-bold uppercase tracking-wider">
+                  {review.requiresRedo ? 'Redo requested' : 'Review submitted'}
+                </p>
+                <p className="mt-2 text-base text-taskly-muted">
+                  Reviewed by <strong>{review.assessorName}</strong>
+                </p>
+                <p className="mt-2 text-lg">
+                  Score: <strong>{review.score}/10</strong>
+                </p>
+                {review.comment && (
+                  <p className="mt-3 text-base leading-relaxed">&ldquo;{review.comment}&rdquo;</p>
+                )}
+                {review.requiresRedo && (
+                  <p className="mt-3 text-base font-semibold text-red-800">
+                    Scores below 5 require the student to record again.
+                  </p>
+                )}
+              </section>
+            ) : submission?.status === 'superseded' ? (
+              <section className="rounded-2xl border-2 border-speakly-coral-ring bg-white p-6">
+                <p className="text-base text-taskly-muted">
+                  This link has been replaced by a newer recording from the student.
+                </p>
+              </section>
+            ) : submission?.status === 'playback' ? (
+              <section className="rounded-2xl border-2 border-speakly-coral-ring bg-speakly-coral-light p-6">
+                <p className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
+                  Listening link
+                </p>
+                <p className="mt-2 text-base text-speakly-ink/85">
+                  Press play above to hear this practice recording. Formal assessment opens once the
+                  learner shares this link for review.
+                </p>
+              </section>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6 border-t border-speakly-coral-ring/50 pt-6">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
+                  Your assessment
+                </h2>
+
+                {error && (
+                  <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                    {error}
+                  </p>
+                )}
+
+                <label className="block">
+                  <span className="text-sm font-bold text-speakly-ink">Your name (optional)</span>
+                  <input
+                    type="text"
+                    value={assessorName}
+                    onChange={(e) => setAssessorName(e.target.value)}
+                    placeholder="Coach, teacher, mentor…"
+                    className={inputClassName}
+                  />
+                </label>
+
+                <div>
+                  <span className="text-sm font-bold text-speakly-ink">Score (1–10)</span>
+                  <p className="mt-1 text-sm text-taskly-muted">
+                    Scores below 5 require the student to record again.
+                  </p>
+                  <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-10">
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
+                      const selected = score === n;
+                      const isRedo = n < 5;
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setScore(n)}
+                          className={`flex h-11 items-center justify-center rounded-2xl text-base font-bold tabular-nums transition ${
+                            selected
+                              ? isRedo
+                                ? 'bg-red-500 text-white shadow-[0_4px_12px_rgba(239,68,68,0.35)]'
+                                : n === 5
+                                  ? 'bg-amber-400 text-speakly-ink shadow-[0_4px_12px_rgba(251,191,36,0.35)]'
+                                  : 'bg-emerald-500 text-white shadow-[0_4px_12px_rgba(16,185,129,0.35)]'
+                              : 'border-2 border-speakly-coral-ring bg-white text-speakly-ink hover:border-speakly-coral hover:bg-speakly-coral-light'
+                          }`}
+                          aria-pressed={selected}
+                        >
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <label className="block">
+                  <span className="text-sm font-bold text-speakly-ink">Feedback (optional)</span>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={4}
+                    placeholder="What went well? What should they practice?"
+                    className={`${inputClassName} resize-y`}
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  disabled={submitting || !isScoreSelected}
+                  className="btn-speakly-primary w-full disabled:opacity-50"
+                >
+                  {submitting ? 'Submitting…' : 'Submit review'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-col items-center gap-3 text-center">
+          <SpeaklyWaveformDecor className="w-full max-w-xs opacity-40" />
+          <p className="text-xs text-taskly-muted">Speak With Intention · Persona</p>
+        </div>
+      </main>
     </div>
   );
 }

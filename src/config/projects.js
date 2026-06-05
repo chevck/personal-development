@@ -4,10 +4,11 @@ export const SPEECH_TRAINING_PROJECT_ID = 'speech-training';
 export const projects = [
   {
     id: SPEECH_TRAINING_PROJECT_ID,
-    path: '/speech-training',
+    path: '/speakly/welcome',
+    appPath: '/speakly',
     title: 'Speak With Intention',
-    description: '21-day speech training — pace, clarity, and delivery.',
-    tag: '21 days',
+    description: 'Flexible speech training (7–60 days) — pace, clarity, and delivery.',
+    tag: '7–60 days',
     accent: 'from-[#C8A97E] to-[#A07EC8]',
   },
 ];

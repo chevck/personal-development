@@ -1,6 +1,10 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    match /speakly_users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
     match /projects/speech-training/progress/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }

@@ -2,6 +2,7 @@ import {
   createUserWithEmailAndPassword,
   getAuth,
   signInWithEmailAndPassword,
+  updateProfile,
 } from 'firebase/auth';
 import { app, isFirebaseConfigured } from './config';
 
@@ -68,7 +69,7 @@ export async function signInWithPassword(email, password) {
   }
 }
 
-export async function registerWithPassword(email, password) {
+export async function registerWithPassword(email, password, { displayName } = {}) {
   if (!auth) {
     throw new Error('Firebase is not configured.');
   }
@@ -77,6 +78,10 @@ export async function registerWithPassword(email, password) {
     const normalized = normalizeEmail(email);
     validatePassword(password);
     const credential = await createUserWithEmailAndPassword(auth, normalized, password);
+    const name = displayName?.trim();
+    if (name) {
+      await updateProfile(credential.user, { displayName: name });
+    }
     return credential.user;
   } catch (error) {
     if (error.message && !error.code) throw error;

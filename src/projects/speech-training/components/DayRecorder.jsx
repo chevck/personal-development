@@ -185,13 +185,13 @@ export default function DayRecorder({
   }
 
   return (
-    <section className="rounded-2xl border-2 border-brand/40 bg-taskly-surface p-5">
+    <section className="rounded-2xl border-2 border-speakly-coral-ring bg-speakly-coral-light p-5">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-taskly-ink">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
           Record your practice
         </h3>
         {isApproved ? (
-          <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-brand-ink">
+          <span className="rounded-full bg-speakly-coral px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
             Complete
           </span>
         ) : isSaved ? (
@@ -235,7 +235,7 @@ export default function DayRecorder({
       )}
 
       {status === 'preview' && previewUrl && (
-        <div className="mt-4 rounded-xl border-2 border-brand/60 bg-white p-4 shadow-soft">
+        <div className="mt-4 rounded-xl border-2 border-speakly-coral/40 bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
           <p className="mb-2 text-sm font-semibold text-taskly-ink">
             Listen before saving · {formatDuration(previewDurationMs)}
           </p>
@@ -248,7 +248,7 @@ export default function DayRecorder({
           <button
             type="button"
             onClick={startRecording}
-            className="flex min-w-[140px] flex-1 items-center justify-center gap-2 rounded-2xl bg-taskly-ink py-4 text-base font-bold text-white transition hover:bg-neutral-800"
+            className="btn-speakly-primary flex min-w-[140px] flex-1 !py-4"
           >
             <span className="relative flex h-3 w-3">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
@@ -267,7 +267,7 @@ export default function DayRecorder({
             <button
               type="button"
               onClick={stopRecording}
-              className="rounded-2xl bg-brand px-6 py-4 text-base font-bold text-brand-ink transition hover:bg-brand-hover"
+              className="btn-speakly-primary !px-6 !py-4"
             >
               Stop
             </button>
@@ -276,7 +276,7 @@ export default function DayRecorder({
 
         {isUploading && (
           <div className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white py-4 text-base font-medium text-taskly-muted">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-speakly-coral border-t-transparent" />
             Saving your recording…
           </div>
         )}
@@ -286,14 +286,14 @@ export default function DayRecorder({
             <button
               type="button"
               onClick={handleReRecord}
-              className="rounded-2xl border border-taskly-border bg-white px-5 py-4 text-base font-semibold text-taskly-ink"
+              className="btn-speakly-secondary !px-5 !py-4"
             >
               Try again
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-taskly-ink py-4 text-base font-bold text-white transition hover:bg-neutral-800"
+              className="btn-speakly-primary flex flex-1 !py-4"
             >
               Save recording
             </button>

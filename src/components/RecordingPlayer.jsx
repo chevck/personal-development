@@ -5,7 +5,7 @@ import {
   PLAYBACK_UNSUPPORTED_MESSAGE,
 } from '../lib/audioRecording';
 
-export default function RecordingPlayer({ src, mimeType, className = '' }) {
+export default function RecordingPlayer({ src, mimeType, className = '', autoPlay = false }) {
   const audioRef = useRef(null);
   const [playbackError, setPlaybackError] = useState(null);
 
@@ -23,8 +23,9 @@ export default function RecordingPlayer({ src, mimeType, className = '' }) {
       <audio
         ref={audioRef}
         controls
+        autoPlay={autoPlay}
         playsInline
-        preload="metadata"
+        preload="auto"
         className="w-full"
         onError={() => setPlaybackError(PLAYBACK_UNSUPPORTED_MESSAGE)}
         onLoadedMetadata={() => setPlaybackError(null)}

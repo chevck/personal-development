@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { SPEECH_TRAINING_PROJECT_ID } from '../config/projects';
 import { isFirebaseConfigured } from '../firebase/config';
 
-export default function ProtectedRoute({ children, loginPath = '/speech-training/login' }) {
+export default function ProtectedRoute({ children, loginPath = '/speakly/login' }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 

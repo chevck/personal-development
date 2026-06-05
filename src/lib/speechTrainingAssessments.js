@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import { requireAuthUser } from '../firebase/auth';
+import { buildLearnerContextForSubmission } from './speaklyUsers';
 
 const PROGRESS_PATH = 'projects/speech-training/progress';
 const SUBMISSIONS_PATH = 'projects/speech-training/submissions';
@@ -32,8 +33,27 @@ export function buildSubmissionDocId(shareCode, dayNum, recordingNum) {
   return `${shareCode}-day-${dayNum}-recording-${recordingNum}`;
 }
 
+export function buildSpeaklyRecordingPath(dayNum, recordingNum, shareCode) {
+  const base = `/speakly/recordings/day-${dayNum}/${recordingNum}`;
+  return shareCode ? `${base}?c=${shareCode}` : base;
+}
+
+export function buildSpeaklyRecordingUrl(shareCode, dayNum, recordingNum) {
+  const path = `/speakly/recordings/day-${dayNum}/${recordingNum}`;
+  return `${window.location.origin}${path}?c=${shareCode}`;
+}
+
+export function buildSpeaklyRecordingDisplayUrl(dayNum, recordingNum) {
+  const host = typeof window !== 'undefined' ? window.location.host : '';
+  return `${host}/speakly/recordings/day-${dayNum}/${recordingNum}`;
+}
+
 export function buildAssessUrl(shareCode, dayNum, recordingNum) {
-  return `${window.location.origin}/${shareCode}/day-${dayNum}/recording-${recordingNum}`;
+  return buildSpeaklyRecordingUrl(shareCode, dayNum, recordingNum);
+}
+
+export function buildAssessPath(shareCode, dayNum, recordingNum) {
+  return `${buildSpeaklyRecordingPath(dayNum, recordingNum)}?c=${shareCode}`;
 }
 
 export function parseSubmissionDocId(submissionDocId) {
@@ -69,6 +89,19 @@ export function parseAssessPathSegments(userCode, daySegment, recordingSegment) 
   return { shareCode: code, dayNum, recordingNum };
 }
 
+/** /speakly/recordings/day-3/2?c=48291 */
+export function parseSpeaklyRecordingPath(daySegment, recordingNum, shareCode) {
+  const dayMatch = String(daySegment || '').match(/^day-(\d+)$/i);
+  const recording = Number(recordingNum);
+  const code = String(shareCode || '');
+  if (!dayMatch || !/^\d{5}$/.test(code) || !Number.isFinite(recording) || recording < 1) {
+    return null;
+  }
+  const dayNum = Number(dayMatch[1]);
+  if (dayNum < 1) return null;
+  return { shareCode: code, dayNum, recordingNum: recording };
+}
+
 export function resolveSubmissionDocId({
   shareId,
   userCode,
@@ -76,17 +109,25 @@ export function resolveSubmissionDocId({
   recordingNum,
   daySegment,
   recordingSegment,
+  shareCode,
 }) {
   if (shareId) {
     return shareId;
   }
 
-  const parsed =
+  const speaklyParsed =
+    daySegment != null && recordingNum != null
+      ? parseSpeaklyRecordingPath(daySegment, recordingNum, shareCode)
+      : null;
+
+  const legacyParsed =
     daySegment != null && recordingSegment != null
       ? parseAssessPathSegments(userCode, daySegment, recordingSegment)
       : null;
 
-  const code = parsed?.shareCode ?? String(userCode || '');
+  const parsed = speaklyParsed || legacyParsed;
+
+  const code = parsed?.shareCode ?? String(shareCode || userCode || '');
   const day = parsed?.dayNum ?? Number(dayNum);
   const recording = parsed?.recordingNum ?? Number(recordingNum);
 
@@ -147,6 +188,48 @@ export async function supersedePendingSubmission(submissionId) {
   }
 }
 
+export async function publishRecordingLink({
+  userId,
+  dayNum,
+  day,
+  recording,
+  recordingNum,
+  shareCode,
+}) {
+  if (!isFirebaseConfigured || !db) {
+    throw new Error('Firebase is required to publish recording links.');
+  }
+
+  const submissionDocId = buildSubmissionDocId(shareCode, dayNum, recordingNum);
+  const submissionRef = doc(db, SUBMISSIONS_PATH, submissionDocId);
+  const learnerContext = await buildLearnerContextForSubmission(userId);
+
+  await setDoc(
+    submissionRef,
+    {
+      shareId: submissionDocId,
+      shareCode,
+      dayNum,
+      recordingNum,
+      userId,
+      dayTitle: day.title,
+      dayType: day.type,
+      exercise: day.exercise,
+      description: day.description,
+      duration: day.duration,
+      recording,
+      status: 'playback',
+      review: null,
+      publishedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      ...(learnerContext || {}),
+    },
+    { merge: true },
+  );
+
+  return buildSpeaklyRecordingUrl(shareCode, dayNum, recordingNum);
+}
+
 export async function createAssessmentSubmission({ userId, dayNum, day, recording }) {
   if (!isFirebaseConfigured || !db) {
     throw new Error('Firebase is required to share recordings for assessment.');
@@ -160,31 +243,44 @@ export async function createAssessmentSubmission({ userId, dayNum, day, recordin
     ? normalizeDayMap(progressSnap.data().assessments)
     : {};
 
-  const previousPendingId = assessments[dayNum]?.pendingSubmissionId;
-  await supersedePendingSubmission(previousPendingId);
-
   const shareCode = await ensureUserShareCode(userId);
   const lastRecordingNum = assessments[dayNum]?.lastRecordingNum || 0;
-  const recordingNum = lastRecordingNum + 1;
+  if (lastRecordingNum < 1) {
+    throw new Error('Save your recording before sharing for assessment.');
+  }
+
+  const previousPendingId = assessments[dayNum]?.pendingSubmissionId;
+  if (previousPendingId && previousPendingId !== buildSubmissionDocId(shareCode, dayNum, lastRecordingNum)) {
+    await supersedePendingSubmission(previousPendingId);
+  }
+
+  const recordingNum = lastRecordingNum;
   const submissionDocId = buildSubmissionDocId(shareCode, dayNum, recordingNum);
   const submissionRef = doc(db, SUBMISSIONS_PATH, submissionDocId);
+  const learnerContext = await buildLearnerContextForSubmission(userId);
 
-  await setDoc(submissionRef, {
-    shareId: submissionDocId,
-    shareCode,
-    dayNum,
-    recordingNum,
-    userId,
-    dayTitle: day.title,
-    dayType: day.type,
-    exercise: day.exercise,
-    description: day.description,
-    duration: day.duration,
-    recording,
-    status: 'pending',
-    review: null,
-    createdAt: new Date().toISOString(),
-  });
+  await setDoc(
+    submissionRef,
+    {
+      shareId: submissionDocId,
+      shareCode,
+      dayNum,
+      recordingNum,
+      userId,
+      dayTitle: day.title,
+      dayType: day.type,
+      exercise: day.exercise,
+      description: day.description,
+      duration: day.duration,
+      recording,
+      status: 'pending',
+      review: null,
+      sharedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      ...(learnerContext || {}),
+    },
+    { merge: true },
+  );
 
   assessments[dayNum] = {
     ...(assessments[dayNum] || {}),
@@ -206,7 +302,7 @@ export async function createAssessmentSubmission({ userId, dayNum, day, recordin
     dayNum,
     recordingNum,
     submissionDocId,
-    url: buildAssessUrl(shareCode, dayNum, recordingNum),
+    url: buildSpeaklyRecordingUrl(shareCode, dayNum, recordingNum),
   };
 }
 
