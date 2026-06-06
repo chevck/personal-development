@@ -312,6 +312,10 @@ export async function getSubmission(submissionDocId) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
+export function submissionAcceptsReview(submission) {
+  return submission?.status === 'pending' || submission?.status === 'playback';
+}
+
 function reviewAlreadyTakenError(submission) {
   if (submission.status === 'reviewed' && submission.review) {
     const who = submission.review.assessorName || 'An assessor';
@@ -351,7 +355,7 @@ export async function submitAssessmentReview(submissionDocId, { score, comment, 
     }
 
     const submission = submissionSnap.data();
-    if (submission.status !== 'pending') {
+    if (!submissionAcceptsReview(submission)) {
       throw new Error(reviewAlreadyTakenError(submission));
     }
 
@@ -365,6 +369,7 @@ export async function submitAssessmentReview(submissionDocId, { score, comment, 
       : {};
 
     assessments[submission.dayNum] = {
+      ...(assessments[submission.dayNum] || {}),
       requiresRedo,
       latestScore: numericScore,
       latestComment: review.comment,

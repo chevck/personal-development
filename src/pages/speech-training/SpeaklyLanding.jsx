@@ -204,14 +204,14 @@ export default function SpeaklyLanding() {
               </a>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <Link
               to="/speakly/login"
-              className="hidden text-sm font-semibold text-taskly-muted transition hover:text-speakly-coral sm:inline"
+              className="text-sm font-semibold text-taskly-muted transition hover:text-speakly-coral"
             >
               Sign in
             </Link>
-            <Link to="/speakly/register" className="btn-primary px-5 py-2.5 text-sm">
+            <Link to="/speakly/register" className="btn-primary whitespace-nowrap px-4 py-2.5 text-sm sm:px-5">
               Get started
             </Link>
           </div>
@@ -280,28 +280,44 @@ export default function SpeaklyLanding() {
                 Before every sentence you speak today, take one silent breath. Build awareness
                 before you open your mouth.
               </p>
-              <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-                <span className="inline-flex items-center gap-2 rounded-full bg-speakly-coral-muted px-4 py-2 text-sm font-semibold text-speakly-coral-dark">
+              <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <span className="inline-flex w-fit items-center gap-2 rounded-full bg-speakly-coral-muted px-4 py-2 text-sm font-semibold text-speakly-coral-dark">
                   Day 1 · Awareness
                 </span>
-                <Link
-                  to="/speakly/register"
-                  className="btn-primary inline-flex items-center gap-2 px-6 py-3 text-sm"
-                >
-                  Start programme
-                  <span aria-hidden>→</span>
-                </Link>
+                <div className="flex flex-col gap-2">
+                  <Link
+                    to="/speakly/register"
+                    className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 text-sm sm:justify-start"
+                  >
+                    Start programme
+                    <span aria-hidden>→</span>
+                  </Link>
+                  <Link
+                    to="/speakly/login"
+                    className="text-center text-sm font-semibold text-speakly-coral transition hover:text-speakly-coral-dark sm:text-right"
+                  >
+                    Already have an account? Sign in
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="sk-in sk-in-6 mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Link to="/speakly/register" className="btn-primary px-8 py-3.5 text-base">
-              Get started free
+          <div className="sk-in sk-in-6 mt-10 flex flex-col items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Link to="/speakly/register" className="btn-primary px-8 py-3.5 text-base">
+                Get started free
+              </Link>
+              <a href="#features" className="btn-secondary px-8 py-3.5 text-base">
+                See features
+              </a>
+            </div>
+            <Link
+              to="/speakly/login"
+              className="text-sm font-semibold text-speakly-coral transition hover:text-speakly-coral-dark"
+            >
+              Already have an account? Sign in
             </Link>
-            <a href="#features" className="btn-secondary px-8 py-3.5 text-base">
-              See features
-            </a>
           </div>
         </div>
       </section>

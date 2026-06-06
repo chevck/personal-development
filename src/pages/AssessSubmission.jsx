@@ -8,6 +8,7 @@ import { SPEECH_TRAINING_PROJECT_ID } from '../config/projects';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import {
   resolveSubmissionDocId,
+  submissionAcceptsReview,
   submitAssessmentReview,
 } from '../lib/speechTrainingAssessments';
 
@@ -181,6 +182,7 @@ export default function AssessSubmission() {
   const isScoreSelected = Number.isFinite(score);
   const attemptLabel =
     submission?.recordingNum > 1 ? ` · Attempt ${submission.recordingNum}` : '';
+  const acceptsReview = submissionAcceptsReview(submission);
 
   return (
     <div className="speakly-app min-h-screen bg-gradient-to-b from-speakly-coral-light via-white to-speakly-coral-muted/40 font-speakly text-speakly-ink">
@@ -200,7 +202,7 @@ export default function AssessSubmission() {
         <div className="dash-in card-speakly overflow-hidden">
           <div className="bg-gradient-to-br from-speakly-coral to-speakly-coral-dark p-5 text-white sm:p-6 md:p-8">
             <p className="text-xs font-semibold uppercase tracking-wider text-white/80 sm:text-sm">
-              Speakly assessment
+              Speakly practice review
             </p>
             <h1 className="font-display mt-2 text-2xl font-normal tracking-tight sm:text-3xl md:text-4xl">
               Day {submission.dayNum}: {submission.dayTitle}
@@ -218,8 +220,8 @@ export default function AssessSubmission() {
 
           <div className="space-y-5 p-4 sm:space-y-6 sm:p-6 md:p-8">
             <p className="rounded-2xl bg-speakly-coral-light px-4 py-3 text-sm text-speakly-coral-dark">
-              Only one assessor can submit a review on this link. The first submission closes it
-              for everyone else.
+              Listen to the recording below, then submit your assessment. Only one assessor can
+              review this link — the first submission closes it for everyone else.
             </p>
 
             <LearnerReasonsSection submission={submission} />
@@ -293,17 +295,7 @@ export default function AssessSubmission() {
                   This link has been replaced by a newer recording from the student.
                 </p>
               </section>
-            ) : submission?.status === 'playback' ? (
-              <section className="rounded-2xl border-2 border-speakly-coral-ring bg-speakly-coral-light p-6">
-                <p className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
-                  Listening link
-                </p>
-                <p className="mt-2 text-base text-speakly-ink/85">
-                  Press play above to hear this practice recording. Formal assessment opens once the
-                  learner shares this link for review.
-                </p>
-              </section>
-            ) : (
+            ) : acceptsReview ? (
               <form onSubmit={handleSubmit} className="space-y-6 border-t border-speakly-coral-ring/50 pt-6">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
                   Your assessment
@@ -377,7 +369,7 @@ export default function AssessSubmission() {
                   {submitting ? 'Submitting…' : 'Submit review'}
                 </button>
               </form>
-            )}
+            ) : null}
           </div>
         </div>
 

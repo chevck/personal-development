@@ -6,6 +6,7 @@ import {
   parseAssessPathSegments,
   parseSpeaklyRecordingPath,
   resolveSubmissionDocId,
+  submissionAcceptsReview,
 } from './speechTrainingAssessments';
 
 describe('assessment share URLs', () => {
@@ -68,6 +69,13 @@ describe('assessment share URLs', () => {
       recordingNum: 1,
     });
     expect(parseAssessPathSegments('48291', 'day-3', 'bad')).toBeNull();
+  });
+
+  test('submissionAcceptsReview for playback and pending only', () => {
+    expect(submissionAcceptsReview({ status: 'playback' })).toBe(true);
+    expect(submissionAcceptsReview({ status: 'pending' })).toBe(true);
+    expect(submissionAcceptsReview({ status: 'reviewed' })).toBe(false);
+    expect(submissionAcceptsReview({ status: 'superseded' })).toBe(false);
   });
 
   test('resolveSubmissionDocId from legacy route segments', () => {

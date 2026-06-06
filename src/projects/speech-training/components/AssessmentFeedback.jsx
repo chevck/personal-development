@@ -17,8 +17,9 @@ export default function AssessmentFeedback({ assessment }) {
           Recording saved — share for review
         </p>
         <p className="mt-2 text-base text-amber-900/80">
-          Your recording is saved but this day is not complete yet. Share it with an assessor below.
-          You need a score of 5 or above to complete the day.
+          Your recording is saved but this day is not complete yet. Copy your link below and send
+          it to an assessor — they can listen and review from the same URL. You need a score of 5
+          or above to complete the day.
         </p>
       </section>
     );
