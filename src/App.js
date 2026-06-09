@@ -7,6 +7,8 @@ import SpeaklyLanding from "./pages/speech-training/SpeaklyLanding";
 import AssessorHome from "./pages/speech-training/AssessorHome";
 import AssessSubmission from "./pages/AssessSubmission";
 import SpeechTrainingSignIn from "./pages/SpeechTrainingSignIn";
+import SpeechTrainingForgotPassword from "./pages/SpeechTrainingForgotPassword";
+import SpeechTrainingResetPassword from "./pages/SpeechTrainingResetPassword";
 import SpeechTrainingRegister from "./pages/SpeechTrainingRegister";
 import SpeechTraining from "./projects/speech-training/SpeechTraining";
 
@@ -18,6 +20,8 @@ function App() {
         <Route path='/' element={<PersonaLanding />} />
         <Route path='/speakly/welcome' element={<SpeaklyLanding />} />
         <Route path='/speakly/login' element={<SpeechTrainingSignIn />} />
+        <Route path='/speakly/forgot-password' element={<SpeechTrainingForgotPassword />} />
+        <Route path='/speakly/reset-password' element={<SpeechTrainingResetPassword />} />
         <Route path='/speakly/register' element={<SpeechTrainingRegister />} />
         <Route
           path='/speakly'

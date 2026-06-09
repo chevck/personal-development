@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import SpeaklyAuthLayout from '../components/speakly/SpeaklyAuthLayout';
 import SpeaklyAuthRedirect from '../components/speakly/SpeaklyAuthRedirect';
 import { signInWithPassword } from '../firebase/auth';
@@ -20,6 +20,8 @@ function FieldLabel({ children, required }) {
 
 export default function SpeechTrainingSignIn() {
   const { user, loading } = useAuth();
+  const location = useLocation();
+  const passwordReset = location.state?.passwordReset;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -103,7 +105,21 @@ export default function SpeechTrainingSignIn() {
                 {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
+            <p className="mt-2 text-right">
+              <Link
+                to="/speakly/forgot-password"
+                className="text-sm font-semibold text-speakly-coral transition hover:text-speakly-coral-dark"
+              >
+                Forgot password?
+              </Link>
+            </p>
           </label>
+
+          {passwordReset && (
+            <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">
+              Your password was updated. Sign in with your new password.
+            </p>
+          )}
 
           {error && (
             <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">

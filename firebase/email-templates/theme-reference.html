@@ -1,0 +1,76 @@
+<!--
+  Shared Speakly transactional email theme (layout reference for future templates).
+
+  Canvas:     #FFF4F0 (coralLight)
+  Card:       #FFFFFF, 12px radius, 1px #F0C4B8 border
+  Logo bar:   #D95D39 (coral) with speakly-logo.png
+  Heading:    #1C1C1C (ink), 28px bold, centered
+  Body:       #5C5C5C (inkMuted), 16px, centered
+  CTA button: #D95D39 background, white text, 8px radius
+  Links:      #D95D39 accent, footer muted #5C5C5C / #9E3D24
+
+  Replace YOUR_APP_URL before use in Firebase Console.
+  Firebase placeholders: %LINK%, %EMAIL%
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Speakly email theme reference</title>
+  </head>
+  <body style="margin: 0; padding: 0; background-color: #fff4f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1c1c1c">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fff4f0">
+      <tr>
+        <td align="center" style="padding: 48px 16px 56px">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 560px">
+            <tr>
+              <td align="center" style="padding-bottom: 28px">
+                <table role="presentation" cellspacing="0" cellpadding="0" style="border-radius: 14px; overflow: hidden">
+                  <tr>
+                    <td align="center" style="background-color: #d95d39; padding: 14px 22px">
+                      <img src="YOUR_APP_URL/speakly-logo.png" width="132" height="36" alt="Speakly" style="display: block; border: 0; height: auto; max-width: 132px" />
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #ffffff; border-radius: 12px; border: 1px solid #f0c4b8">
+            <tr>
+              <td align="center" style="padding: 40px 32px 36px">
+                <img src="YOUR_APP_URL/email/password-reset-hero.svg" width="220" height="140" alt="" style="display: block; margin: 0 auto 28px; border: 0" />
+                <h1 style="margin: 0 0 16px; font-size: 28px; font-weight: 700; line-height: 1.25; color: #1c1c1c; text-align: center">Email heading</h1>
+                <p style="margin: 0 0 28px; max-width: 420px; font-size: 16px; line-height: 1.65; color: #5c5c5c; text-align: center">Centered body copy goes here.</p>
+                <table role="presentation" cellspacing="0" cellpadding="0" style="margin: 0 auto 28px">
+                  <tr>
+                    <td align="center" style="border-radius: 8px; background-color: #d95d39">
+                      <a href="#" style="display: inline-block; padding: 16px 32px; font-size: 16px; font-weight: 700; line-height: 1; color: #ffffff; text-decoration: none; border-radius: 8px">Call to action</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin: 0; max-width: 420px; font-size: 15px; line-height: 1.65; color: #5c5c5c; text-align: center">Secondary supporting text.</p>
+              </td>
+            </tr>
+          </table>
+
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 560px">
+            <tr>
+              <td align="center" style="padding: 28px 16px 0">
+                <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.7; color: #5c5c5c; text-align: center">Footer support copy with <a href="mailto:support@personadevelopments.com" style="color: #d95d39; text-decoration: underline">support@personadevelopments.com</a>.</p>
+                <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #9e3d24; text-align: center">
+                  <a href="YOUR_APP_URL" style="color: #5c5c5c; text-decoration: underline">Persona home</a>
+                  &nbsp;&nbsp;•&nbsp;&nbsp;
+                  <a href="YOUR_APP_URL/speakly/welcome" style="color: #d95d39; text-decoration: underline">Speakly</a>
+                  &nbsp;&nbsp;•&nbsp;&nbsp;
+                  <a href="mailto:support@personadevelopments.com" style="color: #5c5c5c; text-decoration: underline">Support</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

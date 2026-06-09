@@ -1,8 +1,11 @@
 import {
+  confirmPasswordReset,
   createUserWithEmailAndPassword,
   getAuth,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   updateProfile,
+  verifyPasswordResetCode,
 } from 'firebase/auth';
 import { app, isFirebaseConfigured } from './config';
 
@@ -48,8 +51,77 @@ function formatAuthError(error) {
       return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
     case 'auth/too-many-requests':
       return 'Too many attempts. Wait a moment and try again.';
+    case 'auth/expired-action-code':
+      return 'This reset link has expired. Request a new password reset email.';
+    case 'auth/invalid-action-code':
+      return 'This reset link is invalid or has already been used. Request a new one.';
+    case 'auth/user-disabled':
+      return 'This account has been disabled. Contact support for help.';
     default:
       return error.message || 'Authentication failed.';
+  }
+}
+
+export function getPasswordResetContinueUrl() {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/speakly/reset-password`;
+  }
+  return '/speakly/reset-password';
+}
+
+export async function requestPasswordResetEmail(email) {
+  if (!auth) {
+    throw new Error('Firebase is not configured.');
+  }
+
+  const normalized = normalizeEmail(email);
+
+  try {
+    await sendPasswordResetEmail(auth, normalized, {
+      url: getPasswordResetContinueUrl(),
+      handleCodeInApp: true,
+    });
+  } catch (error) {
+    if (error.message && !error.code) throw error;
+    throw new Error(formatAuthError(error));
+  }
+}
+
+export async function verifyPasswordResetRequest(oobCode) {
+  if (!auth) {
+    throw new Error('Firebase is not configured.');
+  }
+
+  const code = String(oobCode || '').trim();
+  if (!code) {
+    throw new Error('This reset link is missing or invalid.');
+  }
+
+  try {
+    return await verifyPasswordResetCode(auth, code);
+  } catch (error) {
+    if (error.message && !error.code) throw error;
+    throw new Error(formatAuthError(error));
+  }
+}
+
+export async function completePasswordReset(oobCode, newPassword) {
+  if (!auth) {
+    throw new Error('Firebase is not configured.');
+  }
+
+  const code = String(oobCode || '').trim();
+  if (!code) {
+    throw new Error('This reset link is missing or invalid.');
+  }
+
+  validatePassword(newPassword);
+
+  try {
+    await confirmPasswordReset(auth, code, newPassword);
+  } catch (error) {
+    if (error.message && !error.code) throw error;
+    throw new Error(formatAuthError(error));
   }
 }
 
