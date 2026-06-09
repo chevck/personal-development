@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import SpeaklyAuthLayout from '../components/speakly/SpeaklyAuthLayout';
-import { SPEAKLY_SUPPORT_EMAIL, SPEAKLY_SUPPORT_MAILTO } from '../config/speaklySupport';
+import PasswordResetEmailSent from '../components/speakly/PasswordResetEmailSent';
 import { requestPasswordResetEmail } from '../firebase/auth';
 import { isFirebaseConfigured } from '../firebase/config';
 
@@ -38,20 +38,32 @@ export default function SpeechTrainingForgotPassword() {
     }
   }
 
+  function handleTryDifferentEmail() {
+    setEmailSent(false);
+    setError(null);
+    setEmail('');
+  }
+
   return (
     <SpeaklyAuthLayout
-      title="Reset your password"
-      subtitle="Enter your account email and we will send you a link to choose a new password in Speakly."
+      title={emailSent ? 'Check your email' : 'Reset your password'}
+      subtitle={
+        emailSent
+          ? 'Open the link in that message to set a new password.'
+          : 'Enter your account email and we will send you a link to choose a new password in Speakly.'
+      }
       footer={
-        <>
-          Remembered your password?{' '}
-          <Link
-            to="/speakly/login"
-            className="font-bold text-taskly-ink underline-offset-2 hover:underline"
-          >
-            Sign in
-          </Link>
-        </>
+        emailSent ? null : (
+          <>
+            Remembered your password?{' '}
+            <Link
+              to="/speakly/login"
+              className="font-bold text-taskly-ink underline-offset-2 hover:underline"
+            >
+              Sign in
+            </Link>
+          </>
+        )
       }
     >
       {!isFirebaseConfigured ? (
@@ -60,29 +72,7 @@ export default function SpeechTrainingForgotPassword() {
           dev server.
         </p>
       ) : emailSent ? (
-        <div className="space-y-4">
-          <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-            If an account exists for <strong>{email.trim()}</strong>, we sent a password reset
-            email. Open the link in that message to choose a new password.
-          </p>
-          <p className="rounded-2xl bg-white px-4 py-3 text-sm leading-relaxed text-taskly-muted shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
-            Did not request a reset? You can ignore the email. If you are concerned, contact{' '}
-            <a href={SPEAKLY_SUPPORT_MAILTO} className="font-semibold text-speakly-coral hover:underline">
-              {SPEAKLY_SUPPORT_EMAIL}
-            </a>
-            .
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setEmailSent(false);
-              setError(null);
-            }}
-            className="text-sm font-semibold text-taskly-ink underline-offset-2 hover:underline"
-          >
-            Send to a different email
-          </button>
-        </div>
+        <PasswordResetEmailSent email={email} onTryDifferentEmail={handleTryDifferentEmail} />
       ) : (
         <form className="space-y-5" onSubmit={handleSubmit}>
           <label className="block">
