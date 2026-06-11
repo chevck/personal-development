@@ -8,6 +8,7 @@ const navLinks = [
   { label: "Skills", href: "#skills" },
   { label: "How it works", href: "#how-it-works" },
   { label: "Why Persona", href: "#why" },
+  { label: "Waitlist", href: "#waitlist" },
 ];
 
 const HERO_PHOTOS = {
@@ -621,24 +622,32 @@ export default function PersonaLanding() {
               </a>
             ))}
           </nav>
-          <a href='#skills' className='text-sm group btn-cta'>
-            <span className='px-2'>Get started</span>
-            <span className='btn-cta-icon' aria-hidden>
-              <svg
-                viewBox='0 0 20 20'
-                className='w-5 h-5'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2.5'
-              >
-                <path
-                  d='M4 10h12M11 5l5 5-5 5'
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                />
-              </svg>
-            </span>
-          </a>
+          <div className='flex shrink-0 items-center gap-2 sm:gap-3'>
+            <Link
+              to='/waitlist'
+              className='hidden text-sm font-semibold transition text-persona-muted hover:text-persona-purple sm:inline'
+            >
+              Join waitlist
+            </Link>
+            <a href='#skills' className='text-sm group btn-cta'>
+              <span className='px-2'>Get started</span>
+              <span className='btn-cta-icon' aria-hidden>
+                <svg
+                  viewBox='0 0 20 20'
+                  className='w-5 h-5'
+                  fill='none'
+                  stroke='currentColor'
+                  strokeWidth='2.5'
+                >
+                  <path
+                    d='M4 10h12M11 5l5 5-5 5'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                  />
+                </svg>
+              </span>
+            </a>
+          </div>
         </div>
       </header>
 
@@ -677,8 +686,8 @@ export default function PersonaLanding() {
             </p>
 
             <div className='flex flex-wrap items-center justify-center gap-4 hero-in hero-in-delay-4 mt-9 lg:justify-start'>
-              <a href='#skills' className='text-base group btn-cta'>
-                <span className='px-2'>Browse skills</span>
+              <Link to='/waitlist' className='text-base group btn-cta'>
+                <span className='px-2'>Join the waitlist</span>
                 <span className='btn-cta-icon' aria-hidden>
                   <svg
                     viewBox='0 0 20 20'
@@ -694,10 +703,13 @@ export default function PersonaLanding() {
                     />
                   </svg>
                 </span>
+              </Link>
+              <a href='#skills' className='btn-secondary px-8 py-3.5 text-base'>
+                Browse skills
               </a>
               <Link
                 to='/speakly/welcome'
-                className='btn-secondary px-8 py-3.5 text-base'
+                className='text-sm font-semibold text-persona-purple transition hover:text-persona-purple-dark sm:text-base'
               >
                 Meet Speakly
               </Link>
@@ -907,6 +919,80 @@ export default function PersonaLanding() {
         </ul>
       </section>
 
+      <section id='waitlist' className='relative px-6 py-20 md:py-28'>
+        <RevealSection className='mx-auto max-w-6xl'>
+          <div className='relative overflow-hidden rounded-[2.5rem] border-2 border-persona-lavender-deep bg-white px-8 py-12 shadow-[0_20px_60px_rgba(94,58,173,0.12)] md:px-14 md:py-16'>
+            <div
+              className='pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-persona-yellow/30 blur-3xl'
+              aria-hidden
+            />
+            <div
+              className='pointer-events-none absolute -bottom-20 -left-12 h-64 w-64 rounded-full bg-persona-lavender/80 blur-3xl'
+              aria-hidden
+            />
+
+            <div className='relative grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]'>
+              <div>
+                <span className='inline-block rounded-full bg-persona-lavender px-4 py-1 text-xs font-bold uppercase tracking-wider text-persona-purple-dark'>
+                  Early access
+                </span>
+                <h2 className='mt-4 text-3xl font-extrabold tracking-tight text-persona-ink md:text-4xl'>
+                  Join the{" "}
+                  <span className='font-accent text-4xl text-persona-purple md:text-5xl'>
+                    waitlist
+                  </span>
+                </h2>
+                <p className='mt-4 max-w-xl text-base leading-relaxed text-persona-muted md:text-lg'>
+                  Learn by practising every day—with progress you can see and accountability
+                  built in. Tell us what you want to learn, even if we don&apos;t offer it yet.
+                </p>
+                <ul className='mt-8 space-y-4'>
+                  {[
+                    'Share what you want to learn — existing skills or something new',
+                    'Tell us how you want to stay accountable and tracked',
+                    "Say what you'd pay in USD so we price Persona fairly",
+                  ].map((item) => (
+                    <li key={item} className='flex gap-3 text-sm text-persona-ink md:text-base'>
+                      <span
+                        className='mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-persona-purple text-xs font-bold text-white'
+                        aria-hidden
+                      >
+                        ✓
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className='rounded-[1.75rem] border-2 border-persona-lavender-deep bg-persona-cream/80 p-8 text-center'>
+                <p className='text-sm font-bold uppercase tracking-wider text-persona-purple'>
+                  Persona waitlist
+                </p>
+                <p className='mt-3 text-base leading-relaxed text-persona-muted'>
+                  About two minutes. No account needed—just your name, what you want to learn,
+                  and what you&apos;d pay.
+                </p>
+                <Link
+                  to='/waitlist'
+                  className='mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-persona-purple px-6 py-4 text-base font-bold text-white shadow-[0_8px_24px_rgba(94,58,173,0.35)] transition hover:bg-persona-purple-hover sm:w-auto'
+                >
+                  Join the Persona waitlist
+                  <span aria-hidden>→</span>
+                </Link>
+                <p className='mt-4 text-xs text-persona-muted'>
+                  Speech training is live today via{' '}
+                  <Link to='/speakly/welcome' className='font-semibold text-persona-purple hover:underline'>
+                    Speakly
+                  </Link>
+                  .
+                </p>
+              </div>
+            </div>
+          </div>
+        </RevealSection>
+      </section>
+
       <section className='px-6 py-20' aria-labelledby='cta-speech-training'>
         <div className='relative mx-auto max-w-4xl overflow-hidden rounded-[2.5rem] px-8 py-14 text-center md:px-16'>
           <div
@@ -934,10 +1020,10 @@ export default function PersonaLanding() {
             </p>
             <div className='flex flex-wrap items-center justify-center gap-4 mt-8'>
               <Link
-                to='/speakly/register'
+                to='/waitlist'
                 className='text-base no-underline group btn-cta-light'
               >
-                <span className='px-2 text-persona-purple'>Get started</span>
+                <span className='px-2 text-persona-purple'>Join waitlist</span>
                 <span className='btn-cta-icon' aria-hidden>
                   <svg
                     viewBox='0 0 20 20'
@@ -955,8 +1041,14 @@ export default function PersonaLanding() {
                 </span>
               </Link>
               <Link
-                to='/speakly/welcome'
+                to='/speakly/register'
                 className='no-underline btn-cta-outline'
+              >
+                Get started
+              </Link>
+              <Link
+                to='/speakly/welcome'
+                className='text-sm font-semibold text-white/90 underline-offset-2 transition hover:text-white hover:underline'
               >
                 Learn about Speakly
               </Link>
@@ -970,8 +1062,15 @@ export default function PersonaLanding() {
           <PersonaBrand size='sm' />
         </div>
         <p>
-          © {new Date().getFullYear()} Persona · Self-development, one skill at
-          a time
+          © {new Date().getFullYear()} Persona · Self-development, one skill at a time
+        </p>
+        <p className='mt-2'>
+          <Link
+            to='/waitlist'
+            className='font-semibold text-persona-purple hover:underline'
+          >
+            Join the Persona waitlist
+          </Link>
         </p>
       </footer>
     </div>

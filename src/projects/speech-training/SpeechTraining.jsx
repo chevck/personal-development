@@ -189,6 +189,7 @@ function DayDetail({
   programDuration,
   completedCount,
   userName,
+  themeId,
   shareCode,
   onBack,
   onSaveRecording,
@@ -307,6 +308,7 @@ function DayDetail({
         programDuration={programDuration}
         completedCount={completedCount}
         userName={userName}
+        themeId={themeId}
       />
     </div>
   );
@@ -526,6 +528,7 @@ export default function SpeechTraining() {
                 user?.displayName?.trim() ||
                 (user?.email ? user.email.split('@')[0] : '')
               }
+              themeId={themeId}
               shareCode={shareCode}
               locked={isDayLocked(
                 activeDay.day,

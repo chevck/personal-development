@@ -17,6 +17,44 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /persona_waitlist/{entryId} {
+      allow create: if request.resource.data.keys().hasAll([
+          'name',
+          'email',
+          'learningTopics',
+          'accountabilityPreferences',
+          'willingToPayUsd',
+          'marketingOptIn',
+          'source',
+          'createdAt',
+          'updatedAt',
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 320
+        && request.resource.data.email.matches('^.+@.+\\..+$')
+        && request.resource.data.willingToPayUsd is number
+        && request.resource.data.willingToPayUsd >= 0
+        && request.resource.data.willingToPayUsd <= 10000
+        && request.resource.data.learningTopics is list
+        && (
+          request.resource.data.learningTopics.size() >= 1
+          || (
+            request.resource.data.keys().hasAny(['customLearningInterest'])
+            && request.resource.data.customLearningInterest is string
+            && request.resource.data.customLearningInterest.size() >= 10
+          )
+        )
+        && request.resource.data.accountabilityPreferences is list
+        && request.resource.data.marketingOptIn is bool
+        && request.resource.data.source == 'website'
+        && request.resource.data.createdAt is string
+        && request.resource.data.updatedAt is string;
+      allow read, update, delete: if false;
+    }
+
     match /projects/speech-training/progress/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }

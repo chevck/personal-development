@@ -1,6 +1,21 @@
 const DARK_INK = '28 28 28';
 const LIGHT_INK = '255 255 255';
 
+function tripletToRgb(triplet) {
+  const [r, g, b] = triplet.split(' ').map(Number);
+  return { r, g, b };
+}
+
+export function tripletToHex(triplet) {
+  const { r, g, b } = tripletToRgb(triplet);
+  return `#${[r, g, b].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+}
+
+function tripletToRgba(triplet, alpha) {
+  const { r, g, b } = tripletToRgb(triplet);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 export const THEME_PALETTE = [
   { id: 'gold', label: 'Gold', brand: '245 215 110', hover: '237 203 90', ink: DARK_INK },
   { id: 'coral', label: 'Coral', brand: '217 93 57', hover: '201 78 44', ink: LIGHT_INK },
@@ -49,4 +64,27 @@ export function applyThemeToDocument(themeId) {
 
 export function isValidThemeId(themeId) {
   return THEME_PALETTE.some((theme) => theme.id === themeId);
+}
+
+/** Resolved accent colors for share cards (inline styles — not CSS variables). */
+export function getShareCardColors(themeId) {
+  const theme = getThemeById(themeId);
+  const brand = theme.brand;
+
+  return {
+    brand: tripletToHex(brand),
+    brandHover: tripletToHex(theme.hover),
+    brandDark: tripletToHex(darkenTriplet(brand)),
+    brandLight: tripletToHex(mixWithWhite(brand, 0.93)),
+    brandRing: tripletToHex(mixWithWhite(brand, 0.76)),
+    brandMuted: tripletToHex(mixWithWhite(brand, 0.86)),
+    onBrand: theme.ink === LIGHT_INK ? '#FFFFFF' : '#1C1C1C',
+    ink: '#1C1C1C',
+    muted: '#5C5C5C',
+    subtle: '#8A8A8A',
+    background: `linear-gradient(155deg, ${tripletToHex(mixWithWhite(brand, 0.94))} 0%, #ffffff 46%, ${tripletToHex(mixWithWhite(brand, 0.9))} 100%)`,
+    glow: `radial-gradient(circle at 88% 8%, ${tripletToRgba(brand, 0.28)}, transparent 44%), radial-gradient(circle at 8% 92%, ${tripletToRgba(brand, 0.16)}, transparent 42%)`,
+    progressTrack: tripletToHex(mixWithWhite(brand, 0.72)),
+    progressFill: `linear-gradient(90deg, ${tripletToHex(brand)}, ${tripletToHex(theme.hover)})`,
+  };
 }

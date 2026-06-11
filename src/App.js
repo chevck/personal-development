@@ -10,6 +10,7 @@ import SpeechTrainingSignIn from "./pages/SpeechTrainingSignIn";
 import SpeechTrainingForgotPassword from "./pages/SpeechTrainingForgotPassword";
 import SpeechTrainingResetPassword from "./pages/SpeechTrainingResetPassword";
 import SpeechTrainingRegister from "./pages/SpeechTrainingRegister";
+import PersonaWaitlist from "./pages/PersonaWaitlist";
 import SpeechTraining from "./projects/speech-training/SpeechTraining";
 
 function App() {
@@ -23,6 +24,8 @@ function App() {
         <Route path='/speakly/forgot-password' element={<SpeechTrainingForgotPassword />} />
         <Route path='/speakly/reset-password' element={<SpeechTrainingResetPassword />} />
         <Route path='/speakly/register' element={<SpeechTrainingRegister />} />
+        <Route path='/waitlist' element={<PersonaWaitlist />} />
+        <Route path='/speakly/waitlist' element={<Navigate to='/waitlist' replace />} />
         <Route
           path='/speakly'
           element={

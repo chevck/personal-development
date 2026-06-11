@@ -1,9 +1,50 @@
-import { forwardRef } from 'react';
-import AppLogo from '../../../components/AppLogo';
+import { forwardRef, useMemo } from 'react';
+import { getBranding } from '../../../config/branding';
 import { SPEECH_TRAINING_PROJECT_ID } from '../../../config/projects';
+import { DEFAULT_THEME_ID, getShareCardColors } from '../../../config/themePalette';
 
-const CARD_WIDTH = 1080;
-const CARD_HEIGHT = 1080;
+export const SHARE_CARD_WIDTH = 1080;
+export const SHARE_CARD_HEIGHT = 1350;
+
+const DISPLAY_FONT = '"Fraunces", Georgia, "Times New Roman", serif';
+const BODY_FONT = '"Plus Jakarta Sans", system-ui, sans-serif';
+
+const WAVE_HEIGHTS = [10, 22, 16, 30, 18, 26, 14, 32, 20, 24, 12, 18];
+
+const TEXT = {
+  block: {
+    display: 'block',
+    margin: 0,
+    padding: 0,
+    fontSynthesis: 'none',
+    WebkitFontSmoothing: 'antialiased',
+  },
+};
+
+function truncateText(text, maxLength) {
+  const trimmed = text?.trim() ?? '';
+  if (!trimmed || trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength - 1).trim()}…`;
+}
+
+function ShareWaveform({ color }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 36 }} aria-hidden>
+      {WAVE_HEIGHTS.map((height, index) => (
+        <span
+          key={index}
+          style={{
+            display: 'block',
+            width: 6,
+            height,
+            borderRadius: 999,
+            background: `linear-gradient(to top, ${color}, ${color}88)`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 const ShareProgressCard = forwardRef(function ShareProgressCard(
   {
@@ -16,165 +57,376 @@ const ShareProgressCard = forwardRef(function ShareProgressCard(
     programDuration,
     completedCount,
     userName,
+    themeId = DEFAULT_THEME_ID,
   },
   ref,
 ) {
-  const progressPct = Math.round((completedCount / programDuration) * 100);
+  const branding = getBranding(SPEECH_TRAINING_PROJECT_ID);
+  const colors = useMemo(() => getShareCardColors(themeId), [themeId]);
+
+  const progressPct = Math.min(
+    100,
+    Math.round((completedCount / Math.max(programDuration, 1)) * 100),
+  );
+
+  const title = truncateText(day.title, 64);
+  const description = truncateText(day.description, 150);
+  const feedback = truncateText(assessorComment, 180);
+  const note = truncateText(personalComment, 160);
+  const assessorLabel = truncateText(assessorName, 36);
+  const speakerLabel = truncateText(userName, 36);
+  const dayLabel = String(day.day).padStart(2, '0');
 
   return (
     <div
       ref={ref}
-      className="share-progress-card relative pointer-events-none select-none overflow-hidden"
+      className="share-progress-card relative box-border select-none"
       style={{
-        width: CARD_WIDTH,
-        height: CARD_HEIGHT,
-        fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
-        background: 'linear-gradient(145deg, #fff4f0 0%, #ffffff 42%, #f5d5cb 100%)',
+        width: SHARE_CARD_WIDTH,
+        height: SHARE_CARD_HEIGHT,
+        fontFamily: BODY_FONT,
+        background: colors.background,
+        color: colors.ink,
+        overflow: 'hidden',
       }}
     >
       <div
-        className="absolute inset-0 opacity-40"
-        style={{
-          background:
-            'radial-gradient(circle at 85% 15%, rgba(217,93,57,0.35), transparent 45%), radial-gradient(circle at 10% 90%, rgba(217,93,57,0.2), transparent 40%)',
-        }}
         aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          opacity: 0.55,
+          background: colors.glow,
+        }}
       />
 
-      <div className="relative flex h-full flex-col p-16">
-        <div className="flex items-center justify-between">
-          <AppLogo projectId={SPEECH_TRAINING_PROJECT_ID} variant="logo" size="md" />
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 10,
+          background: `linear-gradient(to bottom, ${colors.brand}, ${colors.brandHover})`,
+        }}
+      />
+
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          right: 24,
+          top: 96,
+          fontFamily: DISPLAY_FONT,
+          fontSize: 280,
+          fontWeight: 600,
+          lineHeight: '280px',
+          color: colors.brand,
+          opacity: 0.08,
+          userSelect: 'none',
+          fontOpticalSizing: 'auto',
+        }}
+      >
+        {dayLabel}
+      </div>
+
+      <div
+        style={{
+          position: 'relative',
+          display: 'grid',
+          gridTemplateRows: 'auto 1fr auto',
+          height: SHARE_CARD_HEIGHT,
+          padding: '64px 72px 72px 88px',
+          boxSizing: 'border-box',
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 24,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <img
+              src={branding.logo}
+              alt={branding.name}
+              crossOrigin="anonymous"
+              style={{ height: 48, width: 'auto', display: 'block', objectFit: 'contain' }}
+            />
+            <ShareWaveform color={colors.brand} />
+          </div>
           <span
             style={{
+              ...TEXT.block,
               borderRadius: 999,
-              backgroundColor: '#D95D39',
-              color: '#fff',
-              padding: '12px 24px',
-              fontSize: 22,
-              fontWeight: 700,
-              letterSpacing: '0.04em',
+              backgroundColor: colors.brand,
+              color: colors.onBrand,
+              padding: '12px 26px',
+              fontSize: 20,
+              fontWeight: 800,
+              lineHeight: '24px',
+              letterSpacing: '0.06em',
               textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+              boxShadow: `0 10px 28px ${colors.brand}44`,
             }}
           >
             Day {day.day} complete
           </span>
         </div>
 
-        <div className="mt-14">
-          <p
+        {/* Main content */}
+        <div style={{ marginTop: 48, minHeight: 0, overflow: 'hidden' }}>
+          <span
             style={{
-              fontSize: 26,
+              ...TEXT.block,
+              fontSize: 18,
               fontWeight: 700,
+              lineHeight: '22px',
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              color: '#D95D39',
+              color: colors.brand,
             }}
           >
             {day.type} · {phaseLabel}
-          </p>
-          <h2
+          </span>
+
+          <span
             style={{
+              ...TEXT.block,
               marginTop: 16,
-              fontSize: 64,
-              fontWeight: 800,
-              lineHeight: 1.08,
-              color: '#1C1C1C',
-              maxWidth: 900,
+              fontFamily: DISPLAY_FONT,
+              fontSize: 56,
+              fontWeight: 600,
+              lineHeight: '62px',
+              fontOpticalSizing: 'auto',
+              color: colors.ink,
+              maxWidth: 860,
             }}
           >
-            {day.title}
-          </h2>
-          <p style={{ marginTop: 20, fontSize: 28, color: '#6B6578', lineHeight: 1.5 }}>
-            {day.description}
-          </p>
-        </div>
+            {title}
+          </span>
 
-        {(assessorComment || score != null) && (
-          <div
-            className="mt-10 rounded-3xl p-8"
-            style={{ backgroundColor: 'rgba(255,255,255,0.85)', border: '2px solid #F0C4B8' }}
-          >
-            <p
+          {description && (
+            <span
               style={{
-                fontSize: 20,
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: '#9E3D24',
+                ...TEXT.block,
+                marginTop: 20,
+                fontSize: 26,
+                fontWeight: 500,
+                lineHeight: '38px',
+                color: colors.muted,
+                maxWidth: 820,
               }}
             >
-              Assessor feedback
-              {score != null ? ` · ${score}/10` : ''}
-              {assessorName ? ` · ${assessorName}` : ''}
-            </p>
-            {assessorComment && (
-              <p
+              {description}
+            </span>
+          )}
+
+          {(feedback || score != null) && (
+            <div
+              style={{
+                marginTop: 32,
+                borderRadius: 24,
+                padding: '24px 28px',
+                backgroundColor: 'rgba(255,255,255,0.94)',
+                border: `2px solid ${colors.brandRing}`,
+                boxShadow: '0 12px 40px rgba(0,0,0,0.05)',
+              }}
+            >
+              <span
                 style={{
-                  marginTop: 12,
-                  fontSize: 28,
-                  fontStyle: 'italic',
-                  lineHeight: 1.45,
-                  color: '#30261E',
+                  ...TEXT.block,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  lineHeight: '20px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: colors.brandDark,
                 }}
               >
-                &ldquo;{assessorComment}&rdquo;
-              </p>
-            )}
-          </div>
-        )}
+                Assessor feedback
+                {score != null ? ` · ${score}/10` : ''}
+                {assessorLabel ? ` · ${assessorLabel}` : ''}
+              </span>
+              {feedback && (
+                <span
+                  style={{
+                    ...TEXT.block,
+                    marginTop: 12,
+                    fontFamily: DISPLAY_FONT,
+                    fontSize: 26,
+                    fontWeight: 600,
+                    fontStyle: 'italic',
+                    lineHeight: '38px',
+                    fontOpticalSizing: 'auto',
+                    color: colors.ink,
+                  }}
+                >
+                  &ldquo;{feedback}&rdquo;
+                </span>
+              )}
+            </div>
+          )}
 
-        {personalComment?.trim() && (
-          <div
-            className="mt-8 rounded-3xl p-8"
-            style={{ backgroundColor: '#D95D39', color: '#fff' }}
-          >
-            <p
+          {note && (
+            <div
               style={{
-                fontSize: 20,
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                opacity: 0.85,
+                marginTop: 24,
+                borderRadius: 24,
+                padding: '24px 28px',
+                backgroundColor: colors.brand,
+                color: colors.onBrand,
+                boxShadow: `0 16px 40px ${colors.brand}40`,
               }}
             >
-              {userName ? `${userName} says` : 'My note'}
-            </p>
-            <p style={{ marginTop: 12, fontSize: 30, lineHeight: 1.45, fontWeight: 600 }}>
-              {personalComment.trim()}
-            </p>
-          </div>
-        )}
+              <span
+                style={{
+                  ...TEXT.block,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  lineHeight: '20px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  opacity: 0.88,
+                }}
+              >
+                {speakerLabel ? `${speakerLabel} says` : 'My note'}
+              </span>
+              <span
+                style={{
+                  ...TEXT.block,
+                  marginTop: 12,
+                  fontSize: 26,
+                  fontWeight: 600,
+                  lineHeight: '38px',
+                }}
+              >
+                {note}
+              </span>
+            </div>
+          )}
+        </div>
 
-        <div className="mt-auto">
-          <div className="flex items-end justify-between gap-8">
+        {/* Footer progress */}
+        <div
+          style={{
+            marginTop: 40,
+            borderRadius: 28,
+            padding: '28px 32px',
+            backgroundColor: 'rgba(255,255,255,0.94)',
+            border: `2px solid ${colors.brandRing}`,
+            boxShadow: '0 16px 48px rgba(0,0,0,0.06)',
+          }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr auto',
+              alignItems: 'end',
+              columnGap: 24,
+            }}
+          >
             <div>
-              <p style={{ fontSize: 22, fontWeight: 600, color: '#6B6578' }}>Programme progress</p>
-              <p style={{ marginTop: 8, fontSize: 52, fontWeight: 800, color: '#1C1C1C' }}>
-                {completedCount}
-                <span style={{ fontSize: 32, fontWeight: 600, color: '#6B6578' }}>
-                  {' '}
+              <span
+                style={{
+                  ...TEXT.block,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  lineHeight: '20px',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: colors.subtle,
+                }}
+              >
+                Programme progress
+              </span>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: 10,
+                  marginTop: 8,
+                }}
+              >
+                <span
+                  style={{
+                    ...TEXT.block,
+                    fontFamily: DISPLAY_FONT,
+                    fontSize: 52,
+                    fontWeight: 600,
+                    lineHeight: '56px',
+                    fontOpticalSizing: 'auto',
+                    color: colors.ink,
+                  }}
+                >
+                  {completedCount}
+                </span>
+                <span
+                  style={{
+                    ...TEXT.block,
+                    fontSize: 26,
+                    fontWeight: 600,
+                    lineHeight: '32px',
+                    color: colors.muted,
+                  }}
+                >
                   / {programDuration} days
                 </span>
-              </p>
+              </div>
             </div>
-            <p style={{ fontSize: 72, fontWeight: 800, color: '#D95D39' }}>{progressPct}%</p>
+            <span
+              style={{
+                ...TEXT.block,
+                fontFamily: DISPLAY_FONT,
+                fontSize: 72,
+                fontWeight: 600,
+                lineHeight: '72px',
+                fontOpticalSizing: 'auto',
+                color: colors.brand,
+              }}
+            >
+              {progressPct}%
+            </span>
           </div>
+
           <div
-            className="mt-6 overflow-hidden rounded-full"
-            style={{ height: 20, backgroundColor: '#F0C4B8' }}
+            style={{
+              marginTop: 20,
+              height: 18,
+              overflow: 'hidden',
+              borderRadius: 999,
+              backgroundColor: colors.progressTrack,
+            }}
           >
             <div
               style={{
-                height: '100%',
+                height: 18,
                 width: `${progressPct}%`,
                 borderRadius: 999,
-                background: 'linear-gradient(90deg, #D95D39, #C24E2F)',
+                background: colors.progressFill,
               }}
             />
           </div>
-          <p style={{ marginTop: 20, fontSize: 22, color: '#8A8A8A' }}>
-            Training with intention · Persona · Speakly
-          </p>
+
+          <span
+            style={{
+              ...TEXT.block,
+              marginTop: 18,
+              fontSize: 18,
+              fontWeight: 600,
+              lineHeight: '24px',
+              color: colors.subtle,
+              textAlign: 'center',
+              letterSpacing: '0.03em',
+            }}
+          >
+            Speak with intention · Persona · Speakly
+          </span>
         </div>
       </div>
     </div>

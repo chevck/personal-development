@@ -8,6 +8,7 @@ const navLinks = [
   { label: 'Programme', href: '#programme' },
   { label: 'How it works', href: '#how-it-works' },
   { label: 'Features', href: '#features' },
+  { label: 'Waitlist', to: '/waitlist' },
 ];
 
 const features = [
@@ -194,17 +195,33 @@ export default function SpeaklyLanding() {
             />
           </div>
           <nav className="hidden items-center gap-8 md:flex" aria-label="Speakly">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-sm font-semibold text-taskly-muted transition hover:text-speakly-coral"
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.to ? (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="text-sm font-semibold text-taskly-muted transition hover:text-speakly-coral"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm font-semibold text-taskly-muted transition hover:text-speakly-coral"
+                >
+                  {link.label}
+                </a>
+              ),
+            )}
           </nav>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <Link
+              to="/waitlist"
+              className="hidden text-sm font-semibold text-taskly-muted transition hover:text-speakly-coral sm:inline"
+            >
+              Join waitlist
+            </Link>
             <Link
               to="/speakly/login"
               className="text-sm font-semibold text-taskly-muted transition hover:text-speakly-coral"
@@ -305,10 +322,13 @@ export default function SpeaklyLanding() {
 
           <div className="sk-in sk-in-6 mt-10 flex flex-col items-center gap-4">
             <div className="flex flex-wrap items-center justify-center gap-4">
-              <Link to="/speakly/register" className="btn-primary px-8 py-3.5 text-base">
-                Get started free
+              <Link to="/waitlist" className="btn-primary px-8 py-3.5 text-base">
+                Join the waitlist
               </Link>
-              <a href="#features" className="btn-secondary px-8 py-3.5 text-base">
+              <Link to="/speakly/register" className="btn-secondary px-8 py-3.5 text-base">
+                Get started
+              </Link>
+              <a href="#features" className="btn-secondary px-8 py-3.5 text-base hidden sm:inline-flex">
                 See features
               </a>
             </div>
@@ -434,14 +454,22 @@ export default function SpeaklyLanding() {
             Ready to speak with intention?
           </h2>
           <p className="relative mx-auto mt-4 max-w-lg text-base text-white/90">
-            Create your account in a few minutes. Tell us your goals and start Day 1 today.
+            Join the Persona waitlist to help shape learn-by-doing skills—or start Speakly today.
           </p>
-          <Link
-            to="/speakly/register"
-            className="relative mt-8 inline-flex rounded-full bg-white px-8 py-3.5 text-base font-bold text-speakly-coral shadow-lg transition hover:scale-[1.03] hover:bg-speakly-coral-light"
-          >
-            Get started
-          </Link>
+          <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              to="/waitlist"
+              className="inline-flex rounded-full bg-white px-8 py-3.5 text-base font-bold text-speakly-coral shadow-lg transition hover:scale-[1.03] hover:bg-speakly-coral-light"
+            >
+              Join the waitlist
+            </Link>
+            <Link
+              to="/speakly/register"
+              className="inline-flex rounded-full border-2 border-white/80 px-8 py-3.5 text-base font-bold text-white transition hover:bg-white/10"
+            >
+              Get started
+            </Link>
+          </div>
         </Reveal>
       </section>
 

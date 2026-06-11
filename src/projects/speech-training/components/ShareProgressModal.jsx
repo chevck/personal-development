@@ -1,11 +1,40 @@
 import { useEffect, useRef, useState } from 'react';
-import ShareProgressCard from './ShareProgressCard';
+import ShareProgressCard, {
+  SHARE_CARD_HEIGHT,
+  SHARE_CARD_WIDTH,
+} from './ShareProgressCard';
+import { DEFAULT_THEME_ID, getShareCardColors } from '../../../config/themePalette';
 import {
   buildShareCaption,
   captureElementAsPng,
   downloadBlob,
   shareProgressImage,
 } from '../../../lib/shareProgressImage';
+
+const PREVIEW_SCALE = 0.36;
+const PREVIEW_HEIGHT = Math.round(SHARE_CARD_HEIGHT * PREVIEW_SCALE);
+
+function ShareCardPreview({ themeId, ...props }) {
+  const colors = getShareCardColors(themeId);
+
+  return (
+    <div
+      className="overflow-hidden rounded-2xl border border-taskly-border shadow-inner"
+      style={{ height: PREVIEW_HEIGHT, backgroundColor: colors.brandLight }}
+    >
+      <div
+        style={{
+          width: SHARE_CARD_WIDTH,
+          height: SHARE_CARD_HEIGHT,
+          transform: `scale(${PREVIEW_SCALE})`,
+          transformOrigin: 'top left',
+        }}
+      >
+        <ShareProgressCard {...props} themeId={themeId} />
+      </div>
+    </div>
+  );
+}
 
 export default function ShareProgressModal({
   open,
@@ -16,8 +45,10 @@ export default function ShareProgressModal({
   programDuration,
   completedCount,
   userName,
+  themeId = DEFAULT_THEME_ID,
 }) {
   const cardRef = useRef(null);
+  const cardColors = getShareCardColors(themeId);
   const [personalComment, setPersonalComment] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(null);
@@ -26,6 +57,19 @@ export default function ShareProgressModal({
   const score = assessment?.latestScore ?? null;
   const assessorComment = assessment?.latestComment ?? '';
   const assessorName = assessment?.assessorName ?? '';
+
+  const cardProps = {
+    day,
+    phaseLabel,
+    personalComment,
+    assessorComment,
+    assessorName,
+    score,
+    programDuration,
+    completedCount,
+    userName,
+    themeId,
+  };
 
   useEffect(() => {
     if (!open) return undefined;
@@ -45,7 +89,10 @@ export default function ShareProgressModal({
     setError(null);
     setMessage(null);
     try {
-      const blob = await captureElementAsPng(cardRef.current, { scale: 1 });
+      const blob = await captureElementAsPng(cardRef.current, {
+        scale: 2,
+        backgroundColor: cardColors.brandLight,
+      });
       return blob;
     } finally {
       setBusy(false);
@@ -118,6 +165,21 @@ export default function ShareProgressModal({
       onClick={onClose}
     >
       <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          left: '-10000px',
+          top: 0,
+          width: SHARE_CARD_WIDTH,
+          height: SHARE_CARD_HEIGHT,
+          overflow: 'hidden',
+          pointerEvents: 'none',
+        }}
+      >
+        <ShareProgressCard ref={cardRef} {...cardProps} />
+      </div>
+
+      <div
         className="max-h-[95vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -131,25 +193,7 @@ export default function ShareProgressModal({
         </div>
 
         <div className="px-6 py-5">
-          <div className="overflow-hidden rounded-2xl border border-taskly-border bg-taskly-surface shadow-inner">
-            <div
-              className="mx-auto origin-top"
-              style={{ transform: 'scale(0.32)', width: 1080, height: 1080, marginBottom: -730 }}
-            >
-              <ShareProgressCard
-                ref={cardRef}
-                day={day}
-                phaseLabel={phaseLabel}
-                personalComment={personalComment}
-                assessorComment={assessorComment}
-                assessorName={assessorName}
-                score={score}
-                programDuration={programDuration}
-                completedCount={completedCount}
-                userName={userName}
-              />
-            </div>
-          </div>
+          <ShareCardPreview {...cardProps} themeId={themeId} />
 
           <label className="mt-5 block">
             <span className="text-sm font-bold text-taskly-ink">Your comment</span>
