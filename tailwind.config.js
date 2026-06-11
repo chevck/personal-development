@@ -16,12 +16,12 @@ module.exports = {
           ink: 'rgb(var(--brand-ink) / <alpha-value>)',
         },
         speakly: {
-          coral: '#D95D39',
-          'coral-hover': '#C24E2F',
-          'coral-dark': '#9E3D24',
-          'coral-light': '#FFF4F0',
-          'coral-muted': '#F5D5CB',
-          'coral-ring': '#F0C4B8',
+          coral: 'rgb(var(--speakly-coral) / <alpha-value>)',
+          'coral-hover': 'rgb(var(--speakly-coral-hover) / <alpha-value>)',
+          'coral-dark': 'rgb(var(--speakly-coral-dark) / <alpha-value>)',
+          'coral-light': 'rgb(var(--speakly-coral-light) / <alpha-value>)',
+          'coral-muted': 'rgb(var(--speakly-coral-muted) / <alpha-value>)',
+          'coral-ring': 'rgb(var(--speakly-coral-ring) / <alpha-value>)',
           ink: '#1C1C1C',
         },
         persona: {

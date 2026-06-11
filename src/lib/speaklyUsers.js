@@ -1,5 +1,5 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db, isFirebaseConfigured } from '../firebase/config';
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db, isFirebaseConfigured } from "../firebase/config";
 import {
   SPEAKLY_ASSESSOR_BACKGROUND,
   SPEAKLY_ASSESSOR_FOCUS,
@@ -7,26 +7,39 @@ import {
   SPEAKLY_END_GOALS,
   SPEAKLY_FOCUS_AREAS,
   SPEAKLY_REASONS,
+  SPEAKLY_SPEAKING_CONTEXTS,
   SPEAKLY_ROLE_ASSESSOR,
   SPEAKLY_ROLE_LEARNER,
-} from '../config/speaklyRegistration';
+} from "../config/speaklyRegistration";
 import {
   MAX_PROGRAM_DAYS,
   MIN_PROGRAM_DAYS,
   normalizeProgramDuration,
-} from './speechTrainingProgram';
+} from "./speechTrainingProgram";
+import apiClient from "./apiClient";
 
-export const SPEAKLY_USERS_COLLECTION = 'speakly_users';
+export const SPEAKLY_USERS_COLLECTION = "speakly_users";
 
 const VALID_REASON_IDS = new Set(SPEAKLY_REASONS.map((a) => a.id));
+const VALID_SPEAKING_CONTEXT_IDS = new Set(
+  SPEAKLY_SPEAKING_CONTEXTS.map((a) => a.id),
+);
 const VALID_END_GOAL_IDS = new Set(SPEAKLY_END_GOALS.map((a) => a.id));
 const VALID_FOCUS_IDS = new Set(SPEAKLY_FOCUS_AREAS.map((a) => a.id));
-const VALID_QUALIFICATION_IDS = new Set(SPEAKLY_ASSESSOR_QUALIFICATIONS.map((a) => a.id));
-const VALID_ASSESSOR_FOCUS_IDS = new Set(SPEAKLY_ASSESSOR_FOCUS.map((a) => a.id));
-const VALID_BACKGROUND_IDS = new Set(SPEAKLY_ASSESSOR_BACKGROUND.map((a) => a.id));
+const VALID_QUALIFICATION_IDS = new Set(
+  SPEAKLY_ASSESSOR_QUALIFICATIONS.map((a) => a.id),
+);
+const VALID_ASSESSOR_FOCUS_IDS = new Set(
+  SPEAKLY_ASSESSOR_FOCUS.map((a) => a.id),
+);
+const VALID_BACKGROUND_IDS = new Set(
+  SPEAKLY_ASSESSOR_BACKGROUND.map((a) => a.id),
+);
 
 export function getSpeaklyUserRole(profile) {
-  return profile?.role === SPEAKLY_ROLE_ASSESSOR ? SPEAKLY_ROLE_ASSESSOR : SPEAKLY_ROLE_LEARNER;
+  return profile?.role === SPEAKLY_ROLE_ASSESSOR
+    ? SPEAKLY_ROLE_ASSESSOR
+    : SPEAKLY_ROLE_LEARNER;
 }
 
 function validatePillSelection({ values, validIds, otherText, label }) {
@@ -37,8 +50,10 @@ function validatePillSelection({ values, validIds, otherText, label }) {
   if (invalid.length > 0) {
     throw new Error(`One or more ${label} options are invalid.`);
   }
-  if (values.includes('other') && !(otherText?.trim())) {
-    throw new Error(`Tell us a little more about your “Other” ${label} choice.`);
+  if (values.includes("other") && !otherText?.trim()) {
+    throw new Error(
+      `Tell us a little more about your “Other” ${label} choice.`,
+    );
   }
 }
 
@@ -47,21 +62,28 @@ function validateLearnerProfile(profile) {
     values: profile.reasonsForJoining,
     validIds: VALID_REASON_IDS,
     otherText: profile.reasonsForJoiningOther,
-    label: 'reasons',
+    label: "reasons",
+  });
+
+  validatePillSelection({
+    values: profile.speakingContexts,
+    validIds: VALID_SPEAKING_CONTEXT_IDS,
+    otherText: profile.speakingContextsOther,
+    label: "speaking context",
   });
 
   validatePillSelection({
     values: profile.focusAreas,
     validIds: VALID_FOCUS_IDS,
     otherText: profile.focusAreasOther,
-    label: 'focus area',
+    label: "focus area",
   });
 
   validatePillSelection({
     values: profile.endGoals,
     validIds: VALID_END_GOAL_IDS,
     otherText: profile.endGoalsOther,
-    label: 'end goal',
+    label: "end goal",
   });
 
   const duration = normalizeProgramDuration(profile.programDuration);
@@ -77,45 +99,49 @@ function validateAssessorProfile(profile) {
     values: profile.qualifications,
     validIds: VALID_QUALIFICATION_IDS,
     otherText: profile.qualificationsOther,
-    label: 'qualifications',
+    label: "qualifications",
   });
 
   validatePillSelection({
     values: profile.assessorFocus,
     validIds: VALID_ASSESSOR_FOCUS_IDS,
     otherText: profile.assessorFocusOther,
-    label: 'review focus',
+    label: "review focus",
   });
 
   validatePillSelection({
     values: profile.assessorBackground,
     validIds: VALID_BACKGROUND_IDS,
     otherText: null,
-    label: 'background',
+    label: "background",
   });
 
-  const bio = profile.assessorBio?.trim() ?? '';
+  const bio = profile.assessorBio?.trim() ?? "";
   if (bio.length > 0 && bio.length < 10) {
-    throw new Error('Share a little more in your bio (at least 10 characters), or leave it blank.');
+    throw new Error(
+      "Share a little more in your bio (at least 10 characters), or leave it blank.",
+    );
   }
 }
 
 export function validateRegistrationProfile(profile) {
-  const name = profile.name?.trim() ?? '';
-  const email = profile.email?.trim() ?? '';
+  const name = profile.name?.trim() ?? "";
+  const email = profile.email?.trim() ?? "";
   const role = profile.role;
 
   if (!name) {
-    throw new Error('Enter your name.');
+    throw new Error("Enter your name.");
   }
   if (name.length < 2) {
-    throw new Error('Name must be at least 2 characters.');
+    throw new Error("Name must be at least 2 characters.");
   }
   if (!email) {
-    throw new Error('Enter your email.');
+    throw new Error("Enter your email.");
   }
   if (role !== SPEAKLY_ROLE_LEARNER && role !== SPEAKLY_ROLE_ASSESSOR) {
-    throw new Error('Choose whether you are joining as a learner or an assessor.');
+    throw new Error(
+      "Choose whether you are joining as a learner or an assessor.",
+    );
   }
 
   if (role === SPEAKLY_ROLE_ASSESSOR) {
@@ -140,15 +166,15 @@ export function buildSpeaklyUserDocument(uid, profile) {
     return {
       ...base,
       qualifications: [...profile.qualifications],
-      qualificationsOther: profile.qualifications.includes('other')
+      qualificationsOther: profile.qualifications.includes("other")
         ? profile.qualificationsOther.trim()
         : null,
       assessorFocus: [...profile.assessorFocus],
-      assessorFocusOther: profile.assessorFocus.includes('other')
+      assessorFocusOther: profile.assessorFocus.includes("other")
         ? profile.assessorFocusOther.trim()
         : null,
       assessorBackground: [...profile.assessorBackground],
-      assessorBio: profile.assessorBio?.trim() ?? '',
+      assessorBio: profile.assessorBio?.trim() ?? "",
     };
   }
 
@@ -156,15 +182,19 @@ export function buildSpeaklyUserDocument(uid, profile) {
     ...base,
     role: SPEAKLY_ROLE_LEARNER,
     reasonsForJoining: [...profile.reasonsForJoining],
-    reasonsForJoiningOther: profile.reasonsForJoining.includes('other')
+    reasonsForJoiningOther: profile.reasonsForJoining.includes("other")
       ? profile.reasonsForJoiningOther.trim()
       : null,
+    speakingContexts: [...profile.speakingContexts],
+    speakingContextsOther: profile.speakingContexts.includes("other")
+      ? profile.speakingContextsOther.trim()
+      : null,
     focusAreas: [...profile.focusAreas],
-    focusAreasOther: profile.focusAreas.includes('other')
+    focusAreasOther: profile.focusAreas.includes("other")
       ? profile.focusAreasOther.trim()
       : null,
     endGoals: [...profile.endGoals],
-    endGoalsOther: profile.endGoals.includes('other')
+    endGoalsOther: profile.endGoals.includes("other")
       ? profile.endGoalsOther.trim()
       : null,
     programDuration: normalizeProgramDuration(profile.programDuration),
@@ -173,12 +203,13 @@ export function buildSpeaklyUserDocument(uid, profile) {
 
 export async function createSpeaklyUser(uid, profile) {
   if (!isFirebaseConfigured || !db) {
-    throw new Error('Firebase is not configured.');
+    throw new Error("Firebase is not configured.");
   }
 
   validateRegistrationProfile(profile);
 
   const data = buildSpeaklyUserDocument(uid, profile);
+  await apiClient.post("/speakly-api/task/create", data, { toast: false });
   await setDoc(doc(db, SPEAKLY_USERS_COLLECTION, uid), data);
   return data;
 }
@@ -189,17 +220,41 @@ export async function getSpeaklyUser(uid) {
   return snap.exists() ? snap.data() : null;
 }
 
-const REASON_LABEL_BY_ID = Object.fromEntries(SPEAKLY_REASONS.map((r) => [r.id, r.label]));
+const REASON_LABEL_BY_ID = Object.fromEntries(
+  SPEAKLY_REASONS.map((r) => [r.id, r.label]),
+);
 
-export function formatLearnerReasonLabels(reasonsForJoining, reasonsForJoiningOther) {
+const SPEAKING_CONTEXT_LABEL_BY_ID = Object.fromEntries(
+  SPEAKLY_SPEAKING_CONTEXTS.map((c) => [c.id, c.label]),
+);
+
+export function formatLearnerReasonLabels(
+  reasonsForJoining,
+  reasonsForJoiningOther,
+) {
   if (!Array.isArray(reasonsForJoining) || reasonsForJoining.length === 0) {
     return [];
   }
   return reasonsForJoining.map((id) => {
-    if (id === 'other' && reasonsForJoiningOther?.trim()) {
+    if (id === "other" && reasonsForJoiningOther?.trim()) {
       return reasonsForJoiningOther.trim();
     }
     return REASON_LABEL_BY_ID[id] || id;
+  });
+}
+
+export function formatSpeakingContextLabels(
+  speakingContexts,
+  speakingContextsOther,
+) {
+  if (!Array.isArray(speakingContexts) || speakingContexts.length === 0) {
+    return [];
+  }
+  return speakingContexts.map((id) => {
+    if (id === "other" && speakingContextsOther?.trim()) {
+      return speakingContextsOther.trim();
+    }
+    return SPEAKING_CONTEXT_LABEL_BY_ID[id] || id;
   });
 }
 
@@ -212,43 +267,75 @@ export async function buildLearnerContextForSubmission(userId) {
     profile.reasonsForJoining,
     profile.reasonsForJoiningOther,
   );
+  const speakingContexts = formatSpeakingContextLabels(
+    profile.speakingContexts,
+    profile.speakingContextsOther,
+  );
 
-  if (reasons.length === 0 && !profile.name?.trim()) {
+  if (
+    reasons.length === 0 &&
+    speakingContexts.length === 0 &&
+    !profile.name?.trim()
+  ) {
     return null;
   }
 
   return {
     learnerName: profile.name?.trim() || null,
     learnerReasons: reasons,
+    learnerSpeakingContexts: speakingContexts,
   };
 }
 
 export function learnerNeedsReasons(profile) {
   if (getSpeaklyUserRole(profile) !== SPEAKLY_ROLE_LEARNER) return false;
-  return !Array.isArray(profile?.reasonsForJoining) || profile.reasonsForJoining.length === 0;
+  return (
+    !Array.isArray(profile?.reasonsForJoining) ||
+    profile.reasonsForJoining.length === 0
+  );
 }
 
-export async function updateLearnerReasons(uid, { reasonsForJoining, reasonsForJoiningOther }) {
+export async function updateLearnerReasons(
+  uid,
+  { reasonsForJoining, reasonsForJoiningOther },
+) {
   if (!isFirebaseConfigured || !db || !uid) {
-    throw new Error('Firebase is not configured.');
+    throw new Error("Firebase is not configured.");
   }
 
   validatePillSelection({
     values: reasonsForJoining,
     validIds: VALID_REASON_IDS,
     otherText: reasonsForJoiningOther,
-    label: 'reasons',
+    label: "reasons",
   });
 
   const payload = {
     role: SPEAKLY_ROLE_LEARNER,
     reasonsForJoining: [...reasonsForJoining],
-    reasonsForJoiningOther: reasonsForJoining.includes('other')
+    reasonsForJoiningOther: reasonsForJoining.includes("other")
       ? reasonsForJoiningOther.trim()
       : null,
     updatedAt: new Date().toISOString(),
   };
 
-  await setDoc(doc(db, SPEAKLY_USERS_COLLECTION, uid), payload, { merge: true });
+  await setDoc(doc(db, SPEAKLY_USERS_COLLECTION, uid), payload, {
+    merge: true,
+  });
   return payload;
+}
+
+export async function updateSpeaklyUserTheme(uid, themeColor) {
+  if (!isFirebaseConfigured || !db) {
+    throw new Error("Firebase is not configured.");
+  }
+
+  await setDoc(
+    doc(db, SPEAKLY_USERS_COLLECTION, uid),
+    {
+      themeColor,
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true },
+  );
 }

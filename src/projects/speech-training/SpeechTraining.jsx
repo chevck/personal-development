@@ -5,8 +5,12 @@ import SpeaklyAppLayout from '../../components/speakly/SpeaklyAppLayout';
 import SpeaklyProgrammeSidebar from '../../components/speakly/SpeaklyProgrammeSidebar';
 import { useAuth } from '../../contexts/AuthContext';
 import { SPEECH_TRAINING_PROJECT_ID } from '../../config/projects';
+import { useSpeaklyProgramme } from '../../hooks/useSpeaklyProgramme';
 import { useSpeechTrainingProgress } from '../../hooks/useSpeechTrainingProgress';
-import { getProgramWeeks, findDayInProgram } from '../../lib/speechTrainingProgram';
+import {
+  findDayInProgram,
+  getProgramWeeks,
+} from '../../lib/speechTrainingProgram';
 import {
   getActiveWeekIndex,
   getDayLockMessage,
@@ -19,8 +23,6 @@ import DayRecorder from './components/DayRecorder';
 import ShareForReview from './components/ShareForReview';
 import ShareProgressModal from './components/ShareProgressModal';
 import AssessmentFeedback from './components/AssessmentFeedback';
-
-const phaseLabels = { 1: 'The Brake', 2: 'The Shape', 3: 'The Platform' };
 
 function CheckIcon({ className = "h-5 w-5" }) {
   return (
@@ -176,6 +178,7 @@ function DayScheduleRow({
 function DayDetail({
   day,
   phase,
+  phaseLabel,
   completed,
   recording,
   assessment,
@@ -211,7 +214,7 @@ function DayDetail({
               <p
                 className={`mt-2 text-sm font-medium sm:mt-3 sm:text-base ${isDone ? 'text-white/80' : 'text-taskly-muted'}`}
               >
-                Day {day.day} · {phaseLabels[phase.id]}
+                Day {day.day} · {phaseLabel}
               </p>
               <h2
                 className={`font-display mt-1 text-2xl font-normal tracking-tight sm:text-3xl md:text-4xl ${isDone ? 'text-white' : 'text-speakly-ink'}`}
@@ -299,7 +302,7 @@ function DayDetail({
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         day={day}
-        phaseLabel={phaseLabels[phase.id]}
+        phaseLabel={phaseLabel}
         assessment={assessment}
         programDuration={programDuration}
         completedCount={completedCount}
@@ -327,14 +330,29 @@ export default function SpeechTraining() {
     programStartDate,
     programDuration,
     now,
+    themeId,
+    setThemeColor,
+    savingTheme,
   } = useSpeechTrainingProgress();
+  const { loading: programmeLoading, phases: programmePhases } = useSpeaklyProgramme();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const programWeeks = useMemo(
-    () => getProgramWeeks(programDuration),
-    [programDuration],
-  );
+  const phaseLabels = useMemo(() => {
+    return Object.fromEntries(
+      programmePhases.map((phase) => {
+        const match = phase.title?.match(/—\s*(.+)$/);
+        const label = match ? match[1].trim() : phase.title || `Phase ${phase.id}`;
+        return [phase.id, label];
+      }),
+    );
+  }, [programmePhases]);
+
+  const programWeeks = useMemo(() => {
+    const duration = programDuration;
+    const phases = programmePhases;
+    return getProgramWeeks(duration, phases);
+  }, [programDuration, programmePhases]);
 
   const activeWeekIndex = useMemo(() => {
     const idx = getActiveWeekIndex(
@@ -426,7 +444,7 @@ export default function SpeechTraining() {
     return 'Good evening';
   }, [now]);
 
-  if (loading) {
+  if (loading || programmeLoading) {
     return (
       <div className="speakly-app flex min-h-screen flex-col items-center justify-center gap-5 bg-gradient-to-b from-speakly-coral-light via-white to-speakly-coral-muted/40 font-speakly text-taskly-muted">
         <div className="relative flex h-20 w-20 items-center justify-center">
@@ -482,6 +500,9 @@ export default function SpeechTraining() {
       canRecord={canRecord}
       isSynced={isSynced}
       syncError={syncError}
+      themeId={themeId}
+      onThemeChange={setThemeColor}
+      savingTheme={savingTheme}
     />
   );
 
@@ -493,6 +514,7 @@ export default function SpeechTraining() {
             <DayDetail
               day={activeDay}
               phase={detailPhase}
+              phaseLabel={phaseLabels[detailPhase?.id] || detailPhase?.title || 'Phase'}
               completed={completed}
               recording={recordings[activeDay.day]}
               assessment={assessments[activeDay.day]}

@@ -1,11 +1,30 @@
-import { phases } from '../projects/speech-training/phases';
+import { phases as localPhases } from '../projects/speech-training/phases';
 
 export const MIN_PROGRAM_DAYS = 7;
 export const MAX_PROGRAM_DAYS = 60;
 export const DEFAULT_PROGRAM_DAYS = 21;
-export const CURRICULUM_LENGTH = 21;
 
-const curriculumDays = phases.flatMap((p) => p.days);
+let activePhases = localPhases;
+
+export function getProgrammePhases() {
+  return activePhases;
+}
+
+export function setProgrammePhases(phases) {
+  activePhases =
+    Array.isArray(phases) && phases.length > 0 ? phases : localPhases;
+}
+
+export function resetProgrammePhases() {
+  activePhases = localPhases;
+}
+
+export function getCurriculumLength() {
+  return activePhases.flatMap((phase) => phase.days).length;
+}
+
+/** @deprecated Use getCurriculumLength() for dynamic programmes. */
+export const CURRICULUM_LENGTH = 21;
 
 export function normalizeProgramDuration(value) {
   const n = Number(value);
@@ -16,18 +35,34 @@ export function normalizeProgramDuration(value) {
   );
 }
 
-/** Exercise content for programme day N (cycles after 21 curriculum days). */
+function getCurriculumDays() {
+  return activePhases.flatMap((phase) => phase.days);
+}
+
+/** Exercise content for programme day N (cycles after curriculum length). */
 export function getCurriculumDay(dayNum) {
-  const idx = (Math.max(1, dayNum) - 1) % CURRICULUM_LENGTH;
+  const curriculumDays = getCurriculumDays();
+  const length = Math.max(curriculumDays.length, 1);
+  const idx = (Math.max(1, dayNum) - 1) % length;
   const template = curriculumDays[idx];
   return { ...template, day: dayNum };
 }
 
-export function getPhaseForWeekIndex(weekIndex) {
+export function getPhaseForWeekIndex(weekIndex, phases = activePhases) {
   return phases[Math.min(weekIndex, phases.length - 1)];
 }
 
-export function getProgramWeeks(programDuration) {
+export function getPhaseLabelsMap(phases = activePhases) {
+  return Object.fromEntries(
+    phases.map((phase) => {
+      const match = phase.title?.match(/—\s*(.+)$/);
+      const label = match ? match[1].trim() : phase.title || `Phase ${phase.id}`;
+      return [phase.id, label];
+    }),
+  );
+}
+
+export function getProgramWeeks(programDuration, phases = activePhases) {
   const duration = normalizeProgramDuration(programDuration);
   const weekCount = Math.ceil(duration / 7);
   const weeks = [];
@@ -40,7 +75,7 @@ export function getProgramWeeks(programDuration) {
       startDay,
       endDay,
       subtitle: `Days ${startDay}–${endDay}`,
-      phase: getPhaseForWeekIndex(w),
+      phase: getPhaseForWeekIndex(w, phases),
       days: getDaysInWeek(w, duration),
     });
   }

@@ -4,6 +4,7 @@ import {
   getWeekLabel,
   isDayLocked,
 } from '../../lib/speechTrainingProgress';
+import SpeaklyThemePicker from './SpeaklyThemePicker';
 
 function CheckIcon({ className = 'h-3.5 w-3.5' }) {
   return (
@@ -143,6 +144,9 @@ export default function SpeaklyProgrammeSidebar({
   canRecord,
   isSynced,
   syncError,
+  themeId,
+  onThemeChange,
+  savingTheme,
 }) {
   const displayWeekIndex = useMemo(() => {
     if (activeDay?.day) {
@@ -180,6 +184,14 @@ export default function SpeaklyProgrammeSidebar({
             Sign out
           </button>
         </div>
+      )}
+
+      {onThemeChange && (
+        <SpeaklyThemePicker
+          themeId={themeId}
+          onChange={onThemeChange}
+          disabled={savingTheme}
+        />
       )}
 
       <section>

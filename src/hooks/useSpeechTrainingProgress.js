@@ -14,7 +14,7 @@ import {
   getSaveDayError,
 } from "../lib/speechTrainingProgress";
 import { useProgramClock } from "./useProgramClock";
-import { DEFAULT_THEME_ID, getThemeById } from "../config/themePalette";
+import { DEFAULT_THEME_ID, applyThemeToDocument, getThemeById, isValidThemeId } from "../config/themePalette";
 import {
   uploadDayRecording,
   deleteDayRecording,
@@ -30,7 +30,7 @@ import {
   findDayInProgram,
   normalizeProgramDuration,
 } from "../lib/speechTrainingProgram";
-import { getSpeaklyUser } from "../lib/speaklyUsers";
+import { getSpeaklyUser, updateSpeaklyUserTheme } from "../lib/speaklyUsers";
 
 const LOCAL_KEY = "speech-training-completed";
 const LOCAL_RECORDINGS_KEY = "speech-training-recordings";
@@ -102,18 +102,16 @@ export function useSpeechTrainingProgress() {
   const [loading, setLoading] = useState(true);
   const [uploadingDay, setUploadingDay] = useState(null);
   const [syncError, setSyncError] = useState(null);
+  const [savingTheme, setSavingTheme] = useState(false);
 
   const effectiveProgramStart =
     programStartDate ||
     (user ? getProgramStartDateFromUser(user) : formatDateKey(now));
 
   useEffect(() => {
-    const theme = getThemeById(themeId);
-    document.documentElement.style.setProperty("--brand", theme.brand);
-    document.documentElement.style.setProperty("--brand-hover", theme.hover);
-    document.documentElement.style.setProperty("--brand-ink", theme.ink);
+    applyThemeToDocument(themeId);
     try {
-      localStorage.setItem(LOCAL_THEME_KEY, theme.id);
+      localStorage.setItem(LOCAL_THEME_KEY, getThemeById(themeId).id);
     } catch {
       // ignore
     }
@@ -181,8 +179,18 @@ export function useSpeechTrainingProgress() {
 
     getDoc(ref).then(async (snapshot) => {
       const startDate = getProgramStartDateFromUser(user);
-      const initialTheme = themeId || DEFAULT_THEME_ID;
       const speaklyProfile = await getSpeaklyUser(user.uid);
+      const profileTheme = speaklyProfile?.themeColor;
+      const initialTheme =
+        (snapshot.exists() && snapshot.data().themeColor) ||
+        profileTheme ||
+        themeId ||
+        DEFAULT_THEME_ID;
+
+      if (isValidThemeId(initialTheme) && initialTheme !== themeId) {
+        setThemeId(initialTheme);
+      }
+
       const duration = normalizeProgramDuration(
         snapshot.exists() && snapshot.data().programDuration
           ? snapshot.data().programDuration
@@ -486,17 +494,31 @@ export function useSpeechTrainingProgress() {
 
   const setThemeColor = useCallback(
     async (nextThemeId) => {
+      if (!isValidThemeId(nextThemeId)) return;
+
+      setSavingTheme(true);
       setThemeId(nextThemeId);
-      if (isFirebaseConfigured && db) {
-        const ref = progressRef();
-        await setDoc(
-          ref,
-          { themeColor: nextThemeId, updatedAt: new Date().toISOString() },
-          { merge: true },
-        );
+
+      try {
+        if (isFirebaseConfigured && db && user) {
+          const ref = progressRef();
+          await Promise.all([
+            setDoc(
+              ref,
+              { themeColor: nextThemeId, updatedAt: new Date().toISOString() },
+              { merge: true },
+            ),
+            updateSpeaklyUserTheme(user.uid, nextThemeId),
+          ]);
+        }
+      } catch (error) {
+        console.error("Theme save error:", error);
+        setSyncError(error.message || "Could not save theme.");
+      } finally {
+        setSavingTheme(false);
       }
     },
-    [setThemeId],
+    [user],
   );
 
   return {
@@ -506,6 +528,7 @@ export function useSpeechTrainingProgress() {
     shareCode,
     themeId,
     setThemeColor,
+    savingTheme,
     programStartDate: effectiveProgramStart,
     programDuration,
     now,

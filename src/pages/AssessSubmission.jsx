@@ -23,30 +23,57 @@ function formatDuration(ms) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-function LearnerReasonsSection({ submission }) {
+function LearnerContextSection({ submission }) {
   const reasons = Array.isArray(submission?.learnerReasons)
     ? submission.learnerReasons.filter(Boolean)
     : [];
-  if (reasons.length === 0) return null;
+  const contexts = Array.isArray(submission?.learnerSpeakingContexts)
+    ? submission.learnerSpeakingContexts.filter(Boolean)
+    : [];
+
+  if (reasons.length === 0 && contexts.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-speakly-coral-ring bg-white p-4 sm:p-5">
-      <h2 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
-        Why they&apos;re using Speakly
-      </h2>
-      <p className="mt-1 text-sm text-taskly-muted">
+    <section className="space-y-4 rounded-2xl border border-speakly-coral-ring bg-white p-4 sm:p-5">
+      {reasons.length > 0 && (
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
+            Why they&apos;re using Speakly
+          </h2>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {reasons.map((reason) => (
+              <li
+                key={reason}
+                className="rounded-full bg-speakly-coral-light px-3 py-1.5 text-sm font-medium text-speakly-coral-dark"
+              >
+                {reason}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {contexts.length > 0 && (
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-speakly-coral-dark">
+            Where they want to speak better
+          </h2>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {contexts.map((context) => (
+              <li
+                key={context}
+                className="rounded-full bg-speakly-coral-light px-3 py-1.5 text-sm font-medium text-speakly-coral-dark"
+              >
+                {context}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <p className="text-sm text-taskly-muted">
         Context from the learner — use this to tailor your feedback.
       </p>
-      <ul className="mt-3 flex flex-wrap gap-2">
-        {reasons.map((reason) => (
-          <li
-            key={reason}
-            className="rounded-full bg-speakly-coral-light px-3 py-1.5 text-sm font-medium text-speakly-coral-dark"
-          >
-            {reason}
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }
@@ -224,7 +251,7 @@ export default function AssessSubmission() {
               review this link — the first submission closes it for everyone else.
             </p>
 
-            <LearnerReasonsSection submission={submission} />
+            <LearnerContextSection submission={submission} />
 
             {submission.description && (
               <section>

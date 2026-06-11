@@ -1,5 +1,6 @@
 import {
   formatLearnerReasonLabels,
+  formatSpeakingContextLabels,
   learnerNeedsReasons,
   validateRegistrationProfile,
   buildSpeaklyUserDocument,
@@ -12,6 +13,8 @@ const validLearnerProfile = {
   email: 'alex@example.com',
   reasonsForJoining: ['freeze-meetings', 'more-confident'],
   reasonsForJoiningOther: '',
+  speakingContexts: ['professional', 'meetings'],
+  speakingContextsOther: '',
   focusAreas: ['clarity', 'confidence'],
   focusAreasOther: '',
   endGoals: ['present-confidently', 'speak-clearly'],
@@ -37,6 +40,7 @@ describe('speaklyUsers', () => {
     const doc = buildSpeaklyUserDocument('uid-1', validLearnerProfile);
     expect(doc.role).toBe(SPEAKLY_ROLE_LEARNER);
     expect(doc.reasonsForJoining).toEqual(['freeze-meetings', 'more-confident']);
+    expect(doc.speakingContexts).toEqual(['professional', 'meetings']);
     expect(doc.qualifications).toBeUndefined();
   });
 
@@ -47,6 +51,12 @@ describe('speaklyUsers', () => {
     expect(doc.qualifications).toEqual(['speech-coach', 'corporate-trainer']);
     expect(doc.assessorBio).toBe('I coach executives on presentation skills.');
     expect(doc.programDuration).toBeUndefined();
+  });
+
+  test('requires at least one speaking context for learners', () => {
+    expect(() =>
+      validateRegistrationProfile({ ...validLearnerProfile, speakingContexts: [] }),
+    ).toThrow(/at least one option for speaking context/i);
   });
 
   test('requires at least one reason for learners', () => {
@@ -80,6 +90,13 @@ describe('speaklyUsers', () => {
         focusAreasOther: '',
       }),
     ).toThrow(/other.*focus area/i);
+  });
+
+  test('formatSpeakingContextLabels maps ids to labels', () => {
+    expect(formatSpeakingContextLabels(['professional', 'social'], '')).toEqual([
+      'Professional / work settings',
+      'Social & casual conversation',
+    ]);
   });
 
   test('formatLearnerReasonLabels maps ids to labels', () => {

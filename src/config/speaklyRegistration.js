@@ -29,6 +29,19 @@ export const SPEAKLY_REASONS = [
   { id: 'other', label: 'Other' },
 ];
 
+/** Settings where learners want to speak better (multi-select pills). */
+export const SPEAKLY_SPEAKING_CONTEXTS = [
+  { id: 'professional', label: 'Professional / work settings' },
+  { id: 'meetings', label: 'Meetings & team discussions' },
+  { id: 'presentations', label: 'Presentations & public speaking' },
+  { id: 'interviews', label: 'Interviews & introductions' },
+  { id: 'social', label: 'Social & casual conversation' },
+  { id: 'online', label: 'Video calls & online meetings' },
+  { id: 'education', label: 'Classroom & teaching' },
+  { id: 'content', label: 'Podcasts, videos & recorded content' },
+  { id: 'other', label: 'Other' },
+];
+
 /** End goals (multi-select pills). */
 export const SPEAKLY_END_GOALS = [
   { id: 'present-confidently', label: 'Present confidently to any audience' },
