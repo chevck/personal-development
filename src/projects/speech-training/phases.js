@@ -228,15 +228,15 @@ export const phases = [
       },
       {
         day: 17,
-        title: 'The Body Language Anchor',
-        duration: '10 min',
-        type: 'Physical',
+        title: 'The Grounded Delivery',
+        duration: '15 min',
+        type: 'Delivery',
         description:
-          'Plant your feet. Hands at your sides or clasped in front. Breathe from your belly, not your chest. These physical anchors slow your speech automatically.',
+          'Record a 60–90 second talk in one take. Before each sentence, take one silent breath — then speak. Your assessor hears pace, clarity, and pauses, not posture.',
         exercise:
-          'Stand and deliver your 60-second talk from Day 15 using these physical anchors. Notice how planting your feet affects your speaking rhythm.',
-        why: 'Physical restlessness and speech rushing come from the same place — nervous energy. Grounding the body grounds the voice.',
-        tip: "If you're sitting, both feet flat on the floor, back straight. Same effect.",
+          "Re-record your Day 15 topic (or pick a new one). Open with a hook, use PRE structure, and pause before you start. Submit the full recording — don't stop mid-way to rewrite.",
+        why: 'Deliberate breaths before each sentence slow your pace on the recording. Listeners hear confidence in the pauses, not rushed words.',
+        tip: 'Listen back once before submitting. If you rushed, record again with one breath before every sentence.',
       },
       {
         day: 18,
@@ -276,15 +276,15 @@ export const phases = [
       },
       {
         day: 21,
-        title: 'The Commitment',
-        duration: '10 min',
+        title: 'The Spoken Commitment',
+        duration: '15 min',
         type: 'Reflection',
         description:
-          "You've built a foundation. Now decide what you'll keep doing. Pick 2 daily habits from this programme that you'll carry forward permanently.",
+          'Close your programme with a spoken reflection — record 2–3 minutes covering what you will keep doing, where speech still needs work, and one goal for the next 30 days.',
         exercise:
-          'Write down: 1) Your 2 keeper habits. 2) The situation where your speech still needs work. 3) One goal for the next 30 days.',
-        why: 'A 21-day programme means nothing without a Day 22 decision. The habits that stick are the ones you consciously choose.',
-        tip: 'Most people keep: the pre-sentence breath and the PRE structure. But pick what worked for YOU.',
+          'In one recording, say aloud: (1) two daily habits from this programme you will keep, (2) one situation where your speech still struggles, (3) one specific goal for the next 30 days. Bullet points in your head are fine — no script required.',
+        why: 'Speaking your commitment out loud makes it real — and gives your assessor a voice baseline to compare against later.',
+        tip: "End with one landing line you want to live by — e.g. 'One breath, one point, one clear landing.'",
       },
     ],
   },

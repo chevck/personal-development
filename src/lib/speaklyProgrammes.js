@@ -9,6 +9,43 @@ export function getLocalProgrammePhases() {
   return localPhases;
 }
 
+function getBundledDay(dayNum) {
+  for (const phase of localPhases) {
+    const day = phase.days.find((d) => d.day === dayNum);
+    if (day) return day;
+  }
+  return null;
+}
+
+/** Replace legacy non-audio day copy with bundled audio-first exercises. */
+function applyBundledDayPatches(phases) {
+  const staleDayNumbers = phases
+    .flatMap((phase) => phase.days)
+    .filter((day) => {
+      if (day.day === 17) return day.title === 'The Body Language Anchor';
+      if (day.day === 21) {
+        return day.title === 'The Commitment' && String(day.exercise || '').includes('Write down');
+      }
+      return false;
+    })
+    .map((day) => day.day);
+
+  if (staleDayNumbers.length === 0) return phases;
+
+  const patches = Object.fromEntries(
+    staleDayNumbers
+      .map((dayNum) => [dayNum, getBundledDay(dayNum)])
+      .filter(([, patch]) => patch),
+  );
+
+  return phases.map((phase) => ({
+    ...phase,
+    days: phase.days.map((day) =>
+      patches[day.day] ? { ...patches[day.day], day: day.day } : day,
+    ),
+  }));
+}
+
 function normalizeDay(day, index) {
   if (!day || typeof day !== 'object') return null;
   const title = typeof day.title === 'string' ? day.title.trim() : '';
@@ -90,7 +127,7 @@ export async function fetchSpeaklyProgrammeDocument(programmeId) {
   const snap = await getDoc(doc(db, SPEAKLY_PROGRAMMES_COLLECTION, programmeId));
   if (!snap.exists()) return null;
 
-  const phases = normalizeProgrammePhases(snap.data());
+  const phases = applyBundledDayPatches(normalizeProgrammePhases(snap.data()));
   if (!phases) return null;
 
   return {

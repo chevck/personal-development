@@ -54,6 +54,43 @@ describe('speaklyProgrammes', () => {
     expect(getCurriculumLength()).toBe(21);
   });
 
+  test('resolveSpeaklyProgrammeForUser patches legacy day 17 and 21 to audio-first tasks', async () => {
+    getSpeaklyUser.mockResolvedValue({ programmeId: 'legacy-programme' });
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      id: 'legacy-programme',
+      data: () => ({
+        phases: [
+          {
+            id: 3,
+            title: 'Phase 3 — The Platform',
+            days: [
+              {
+                day: 17,
+                title: 'The Body Language Anchor',
+                type: 'Physical',
+                exercise: 'Stand and deliver your 60-second talk from Day 15.',
+              },
+              {
+                day: 21,
+                title: 'The Commitment',
+                type: 'Reflection',
+                exercise: 'Write down: 1) Your 2 keeper habits.',
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    const result = await resolveSpeaklyProgrammeForUser('uid-1');
+
+    expect(result.source).toBe('remote');
+    expect(result.phases[0].days[0].title).toBe('The Grounded Delivery');
+    expect(result.phases[0].days[1].title).toBe('The Spoken Commitment');
+    expect(result.phases[0].days[1].exercise).toMatch(/recording/i);
+  });
+
   test('resolveSpeaklyProgrammeForUser uses remote programme when present', async () => {
     getSpeaklyUser.mockResolvedValue({ programmeId: 'custom-programme' });
     getDoc.mockResolvedValue({
