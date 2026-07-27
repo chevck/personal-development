@@ -4,8 +4,8 @@ import {
   learnerNeedsReasons,
   validateRegistrationProfile,
   buildSpeaklyUserDocument,
-} from './speaklyUsers';
-import { SPEAKLY_ROLE_ASSESSOR, SPEAKLY_ROLE_LEARNER } from '../config/speaklyRegistration';
+} from '../../src/lib/speaklyUsers';
+import { SPEAKLY_ROLE_ASSESSOR, SPEAKLY_ROLE_LEARNER } from '../../src/config/speaklyRegistration';
 
 const validLearnerProfile = {
   role: SPEAKLY_ROLE_LEARNER,
@@ -56,7 +56,7 @@ describe('speaklyUsers', () => {
   test('requires at least one speaking context for learners', () => {
     expect(() =>
       validateRegistrationProfile({ ...validLearnerProfile, speakingContexts: [] }),
-    ).toThrow(/at least one option for speaking context/i);
+    ).toThrow(/at least one option for context/i);
   });
 
   test('requires at least one reason for learners', () => {
@@ -120,5 +120,76 @@ describe('speaklyUsers', () => {
       }),
     ).toBe(false);
     expect(learnerNeedsReasons(validAssessorProfile)).toBe(false);
+  });
+
+  describe('track-generic learner validation', () => {
+    test('a profile with no track defaults to voice question banks', () => {
+      expect(() => validateRegistrationProfile(validLearnerProfile)).not.toThrow();
+    });
+
+    test('a design-track profile validates against design question banks, not voice', () => {
+      const designLearnerProfile = {
+        role: SPEAKLY_ROLE_LEARNER,
+        name: 'Chidi Okafor',
+        email: 'chidi@example.com',
+        track: 'design',
+        disciplines: ['ui-ux'],
+        reasonsForJoining: ['portfolio'],
+        reasonsForJoiningOther: '',
+        contexts: ['product-teams'],
+        contextsOther: '',
+        focusAreas: ['layout'],
+        focusAreasOther: '',
+        endGoals: ['ship-portfolio'],
+        endGoalsOther: '',
+        programDuration: 21,
+      };
+
+      expect(() => validateRegistrationProfile(designLearnerProfile)).not.toThrow();
+    });
+
+    test('a voice-track profile still rejects design-only option ids', () => {
+      expect(() =>
+        validateRegistrationProfile({
+          ...validLearnerProfile,
+          track: 'voice',
+          speakingContexts: ['product-teams'], // a design-only context id
+        }),
+      ).toThrow(/context/i);
+    });
+
+    test('a design-track profile rejects voice-only option ids', () => {
+      expect(() =>
+        validateRegistrationProfile({
+          role: SPEAKLY_ROLE_LEARNER,
+          name: 'Chidi Okafor',
+          email: 'chidi@example.com',
+          track: 'design',
+          reasonsForJoining: ['portfolio'],
+          contexts: ['professional'], // a voice-only context id
+          focusAreas: ['layout'],
+          endGoals: ['ship-portfolio'],
+          programDuration: 21,
+        }),
+      ).toThrow(/context/i);
+    });
+  });
+
+  describe('experience level validation', () => {
+    test('accepts a learner profile with a valid level', () => {
+      expect(() =>
+        validateRegistrationProfile({ ...validLearnerProfile, level: 'beginner' }),
+      ).not.toThrow();
+    });
+
+    test('rejects an invalid level id', () => {
+      expect(() =>
+        validateRegistrationProfile({ ...validLearnerProfile, level: 'wizard' }),
+      ).toThrow(/valid experience level/i);
+    });
+
+    test('does not require a level for callers that predate the level step', () => {
+      expect(() => validateRegistrationProfile(validLearnerProfile)).not.toThrow();
+    });
   });
 });

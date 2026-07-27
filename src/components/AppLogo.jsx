@@ -8,11 +8,12 @@ const sizeClasses = {
   xl: { icon: "h-16 w-16", logo: "h-16 w-16" },
 };
 
+// The Provn logo is a wide wordmark, so it keeps its aspect ratio.
 const personaLogoSizeClasses = {
-  sm: { icon: "h-8 w-8", logo: "h-9 w-9" },
-  md: { icon: "h-9 w-9", logo: "h-10 w-10" },
-  lg: { icon: "h-12 w-12", logo: "h-12 w-12" },
-  xl: { icon: "h-14 w-14", logo: "h-14 w-14" },
+  sm: { icon: "h-8 w-8", logo: "h-6 w-auto" },
+  md: { icon: "h-9 w-9", logo: "h-7 w-auto" },
+  lg: { icon: "h-12 w-12", logo: "h-9 w-auto" },
+  xl: { icon: "h-14 w-14", logo: "h-11 w-auto" },
 };
 
 /**

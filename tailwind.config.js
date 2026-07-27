@@ -24,23 +24,26 @@ module.exports = {
           'coral-ring': 'rgb(var(--speakly-coral-ring) / <alpha-value>)',
           ink: '#1C1C1C',
         },
+        /*
+         * Provn palette: Ink #16171B, Proof Green #0EAE6E, Paper #F4F3F1.
+         * Token names predate the rebrand (purple/lavender/yellow); their
+         * values now map onto the green/ink/paper system so existing
+         * persona-* classes restyle without a mass rename.
+         */
         persona: {
-          taupe: '#30261E',
-          'taupe-hover': '#453529',
-          sand: '#F5F0EB',
-          clay: '#E8DFD6',
-          ring: '#D4C4B5',
-          gold: '#C8A97E',
-          purple: '#5E3AAD',
-          'purple-hover': '#4C2E96',
-          'purple-dark': '#3D2578',
-          lavender: '#E8E0F5',
-          'lavender-deep': '#D4C8ED',
-          yellow: '#F5C842',
-          'yellow-hover': '#E8B82E',
-          cream: '#FAF9FC',
-          ink: '#1A1625',
-          muted: '#6B6578',
+          purple: '#0EAE6E',
+          'purple-hover': '#0C9A61',
+          'purple-dark': '#0A7E50',
+          lavender: '#E2F2EA',
+          'lavender-deep': '#C2E2D3',
+          yellow: '#0EAE6E',
+          'yellow-hover': '#0C9A61',
+          cream: '#F4F3F1',
+          ink: '#16171B',
+          muted: '#5D6067',
+          border: '#E7E5E0',
+          surface: '#F8F8F6',
+          violet: '#34C289',
         },
         taskly: {
           yellow: '#F5D76E',

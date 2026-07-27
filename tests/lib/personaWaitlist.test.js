@@ -1,7 +1,7 @@
 import {
   buildWaitlistDocument,
   validateWaitlistEntry,
-} from './personaWaitlist';
+} from '../../src/lib/personaWaitlist';
 
 const validWaitlistEntry = {
   name: 'Alex Morgan',

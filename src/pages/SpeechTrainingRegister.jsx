@@ -3,7 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import SpeaklyAuthLayout from "../components/speakly/SpeaklyAuthLayout";
 import SpeaklyAuthRedirect from "../components/speakly/SpeaklyAuthRedirect";
-import SpeaklyProgrammeBuilder from "../components/speakly/SpeaklyProgrammeBuilder";
+import ProvnBuilderScreen from "../components/persona/ProvnBuilderScreen";
+import {
+  VOICE_ASSESSOR_QUESTS,
+  VOICE_LEARNER_QUESTS,
+} from "../config/provnBuilderContent";
 import {
   SPEAKLY_ASSESSOR_BACKGROUND,
   SPEAKLY_ASSESSOR_FOCUS,
@@ -436,17 +440,38 @@ export default function SpeechTrainingRegister() {
   }
 
   if (provisioning) {
-    const destination =
-      role === SPEAKLY_ROLE_ASSESSOR ? "/speakly/assessor" : "/speakly";
+    const isAssessor = role === SPEAKLY_ROLE_ASSESSOR;
+    const destination = isAssessor ? "/speakly/assessor" : "/speakly";
+    const firstName = name?.split(" ")[0] || "there";
 
     return (
-      <SpeaklyProgrammeBuilder
-        userName={name}
-        programDuration={programDuration}
-        role={role || SPEAKLY_ROLE_LEARNER}
+      <ProvnBuilderScreen
+        headline={
+          isAssessor
+            ? "Setting up your assessor hub"
+            : `Building your ${programDuration}-day speaking quest`
+        }
+        subtitle={
+          isAssessor
+            ? "We are wiring up your review tools—almost ready to welcome learners."
+            : "Every day is a new level. We are crafting exercises from what you told us."
+        }
+        celebrateHeadline={`You're in, ${firstName}!`}
+        celebrateSubtitle={
+          isAssessor
+            ? "Your assessor dashboard is ready. Let's go."
+            : "Your personalised programme is locked and loaded. Time to speak with intention."
+        }
+        quests={isAssessor ? VOICE_ASSESSOR_QUESTS : VOICE_LEARNER_QUESTS}
+        footerNote={
+          !isAssessor && programDuration
+            ? `${programDuration} days · ${Math.ceil(programDuration / 7)} weeks · infinite reps`
+            : null
+        }
         complete={provisioning.complete === true}
         error={provisioning.error}
         manualContinue
+        continueLabel={isAssessor ? "Go to assessor dashboard" : "Start my programme"}
         onFinished={() => {
           navigate(destination, {
             replace: true,

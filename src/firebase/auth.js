@@ -1,7 +1,10 @@
 import {
   createUserWithEmailAndPassword,
+  EmailAuthProvider,
   getAuth,
+  reauthenticateWithCredential,
   signInWithEmailAndPassword,
+  updatePassword,
   updateProfile,
 } from "firebase/auth";
 import { app, isFirebaseConfigured } from "./config";
@@ -191,4 +194,17 @@ export async function requireAuthUser() {
     throw new Error("You must be signed in to continue.");
   }
   return auth.currentUser;
+}
+
+export async function changePassword(currentPassword, newPassword) {
+  const user = await requireAuthUser();
+  validatePassword(newPassword);
+
+  try {
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+    await updatePassword(user, newPassword);
+  } catch (error) {
+    throw new Error(formatAuthError(error));
+  }
 }

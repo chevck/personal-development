@@ -13,8 +13,10 @@ import {
 
 const ToastContext = createContext(null);
 
-const toastClassName =
-  'rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_8px_30px_rgba(0,0,0,0.12)]';
+// Paper background, ink text, a slim colored accent on the left instead of a
+// loud filled background—reads as premium/minimal rather than an alert box.
+const toastBaseClassName =
+  '!flex !items-center !gap-3 !rounded-2xl !border !border-persona-border !border-l-[3px] !bg-white !px-4 !py-3.5 !font-sans !text-sm !font-semibold !text-persona-ink !shadow-[0_12px_36px_rgba(22,23,27,0.12)]';
 
 export function ToastProvider({ children }) {
   const value = useMemo(
@@ -36,30 +38,31 @@ export function ToastProvider({ children }) {
       {children}
       <Toaster
         position="top-center"
-        gutter={12}
+        gutter={10}
         containerClassName="!top-4 sm:!top-6"
         toastOptions={{
           duration: 4500,
-          className: `${toastClassName} !bg-white !text-speakly-ink !border-speakly-coral-ring/80`,
+          className: toastBaseClassName,
           success: {
             iconTheme: {
-              primary: '#D95D39',
-              secondary: '#FFF4F0',
+              primary: '#0EAE6E',
+              secondary: '#F4F3F1',
             },
-            className: `${toastClassName} !bg-emerald-50 !text-emerald-900 !border-emerald-200`,
+            className: `${toastBaseClassName} !border-l-persona-purple`,
           },
           error: {
             iconTheme: {
-              primary: '#DC2626',
-              secondary: '#FEF2F2',
+              primary: '#E0453C',
+              secondary: '#FDF3F2',
             },
-            className: `${toastClassName} !bg-red-50 !text-red-800 !border-red-200`,
+            className: `${toastBaseClassName} !border-l-[#E0453C]`,
           },
           loading: {
             iconTheme: {
-              primary: '#D95D39',
-              secondary: '#FFF4F0',
+              primary: '#0EAE6E',
+              secondary: '#E2F2EA',
             },
+            className: `${toastBaseClassName} !border-l-persona-border`,
           },
         }}
       />

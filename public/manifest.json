@@ -1,20 +1,20 @@
 {
-  "short_name": "Persona",
-  "name": "Persona — Personal growth projects",
+  "short_name": "Provn",
+  "name": "Provn — Personal growth projects",
   "icons": [
     {
-      "src": "persona-icon.png",
+      "src": "provn-icon-192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "persona-icon.png",
+      "src": "provn-icon.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#5E3AAD",
-  "background_color": "#ffffff"
+  "theme_color": "#16171B",
+  "background_color": "#F4F3F1"
 }

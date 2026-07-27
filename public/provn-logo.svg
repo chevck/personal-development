@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="470" height="120" viewBox="0 0 470 120">
+  <g>
+    <g fill="#16171b">
+      <path d="M60,58 L54.5,18 Q60,11 65.5,18 Z" transform="rotate(-150 60 60)"></path>
+      <path d="M60,58 L54.5,18 Q60,11 65.5,18 Z" transform="rotate(-110 60 60)"></path>
+      <path d="M60,58 L54.5,18 Q60,11 65.5,18 Z" transform="rotate(-70 60 60)"></path>
+      <path d="M60,58 L54.5,18 Q60,11 65.5,18 Z" transform="rotate(-30 60 60)"></path>
+      <path d="M60,58 L54.5,18 Q60,11 65.5,18 Z" transform="rotate(50 60 60)"></path>
+    </g>
+    <path d="M60,58 L54.5,18 Q60,11 65.5,18 Z" transform="rotate(10 60 60)" fill="#0EAE6E"></path>
+  </g>
+  <text x="148" y="60" dominant-baseline="central" fill="#16171b"
+    font-family="'Plus Jakarta Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
+    font-size="66" font-weight="800" letter-spacing="14">PROVN</text>
+</svg>

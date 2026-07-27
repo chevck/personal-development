@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { SPEECH_TRAINING_PROJECT_ID } from '../config/projects';
 import { isFirebaseConfigured } from '../firebase/config';
 
-export default function ProtectedRoute({ children, loginPath = '/speakly/login' }) {
+export default function ProtectedRoute({ children, loginPath = '/login' }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -31,8 +31,8 @@ export default function ProtectedRoute({ children, loginPath = '/speakly/login' 
 
   if (loading) {
     return (
-      <div className="speakly-app flex min-h-screen flex-col items-center justify-center gap-4 bg-white font-speakly text-lg text-taskly-muted">
-        <AppLogo projectId={SPEECH_TRAINING_PROJECT_ID} variant="icon" size="lg" />
+      <div className="persona-app flex min-h-screen flex-col items-center justify-center gap-4 bg-white font-sans text-lg text-persona-muted">
+        <AppLogo variant="icon" size="lg" className="app-loading-spin" />
         <p>Checking your account…</p>
       </div>
     );

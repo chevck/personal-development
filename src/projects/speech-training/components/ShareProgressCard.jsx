@@ -425,7 +425,7 @@ const ShareProgressCard = forwardRef(function ShareProgressCard(
               letterSpacing: '0.03em',
             }}
           >
-            Speak with intention · Persona · Speakly
+            Speak with intention · Provn · Speakly
           </span>
         </div>
       </div>

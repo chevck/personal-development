@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import AppLogo from '../AppLogo';
-import SpeaklyProgrammeBuilder from './SpeaklyProgrammeBuilder';
+import ProvnBuilderScreen from '../persona/ProvnBuilderScreen';
 import { SPEECH_TRAINING_PROJECT_ID } from '../../config/projects';
+import { VOICE_LEARNER_QUESTS } from '../../config/provnBuilderContent';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   hasRemoteSpeaklyProgramme,
@@ -13,7 +14,7 @@ import {
   getSpeaklyUserRole,
   learnerNeedsReasons,
 } from '../../lib/speaklyUsers';
-import { SPEAKLY_ROLE_ASSESSOR, SPEAKLY_ROLE_LEARNER } from '../../config/speaklyRegistration';
+import { SPEAKLY_ROLE_ASSESSOR } from '../../config/speaklyRegistration';
 import SpeaklyReasonsPrompt from './SpeaklyReasonsPrompt';
 
 const RECENT_PROFILE_MS = 10 * 60 * 1000;
@@ -119,13 +120,20 @@ export default function SpeaklyLearnerRoute({ children }) {
   }
 
   if (programmeGate === 'building') {
+    const duration = profile?.programDuration;
+    const firstName = (user?.displayName || profile?.name || 'speaker').split(' ')[0];
     return (
-      <SpeaklyProgrammeBuilder
-        userName={user?.displayName || profile?.name || 'speaker'}
-        programDuration={profile?.programDuration}
-        role={SPEAKLY_ROLE_LEARNER}
-        complete={programmeBuilt}
+      <ProvnBuilderScreen
+        headline={
+          duration
+            ? `Building your ${duration}-day speaking quest`
+            : 'Building your speaking quest'
+        }
         subtitle="Your personalised quests are almost ready—we are syncing them now."
+        celebrateHeadline={`You're in, ${firstName}!`}
+        celebrateSubtitle="Your personalised programme is locked and loaded. Time to speak with intention."
+        quests={VOICE_LEARNER_QUESTS}
+        complete={programmeBuilt}
         onFinished={() => setProgrammeGate('ready')}
       />
     );

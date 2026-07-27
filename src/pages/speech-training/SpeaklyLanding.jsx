@@ -185,7 +185,7 @@ export default function SpeaklyLanding() {
               to="/"
               className="hidden text-sm font-semibold text-taskly-muted transition hover:text-speakly-coral sm:inline"
             >
-              ← Persona
+              ← Provn
             </Link>
             <AppLogo
               projectId={SPEECH_TRAINING_PROJECT_ID}
@@ -249,7 +249,7 @@ export default function SpeaklyLanding() {
         <div className="relative mx-auto max-w-4xl text-center">
           <span className="sk-in sk-in-1 inline-flex items-center gap-2 rounded-full border border-speakly-coral-ring bg-white/90 px-4 py-1.5 text-sm font-semibold text-speakly-coral-dark shadow-soft backdrop-blur-sm">
             <span className="h-2 w-2 animate-pulse rounded-full bg-speakly-coral" />
-            A Persona skill · 7–60 days
+            A Provn skill · 7–60 days
           </span>
 
           <h1 className="font-display sk-in sk-in-2 mt-6 text-4xl font-medium leading-[1.12] tracking-tight md:text-6xl lg:text-[3.75rem]">
@@ -454,7 +454,7 @@ export default function SpeaklyLanding() {
             Ready to speak with intention?
           </h2>
           <p className="relative mx-auto mt-4 max-w-lg text-base text-white/90">
-            Join the Persona waitlist to help shape learn-by-doing skills—or start Speakly today.
+            Join the Provn waitlist to help shape learn-by-doing skills—or start Speakly today.
           </p>
           <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
@@ -483,7 +483,7 @@ export default function SpeaklyLanding() {
         <p>
           © {new Date().getFullYear()} Speak With Intention ·{' '}
           <Link to="/" className="font-semibold text-speakly-coral hover:underline">
-            Persona
+            Provn
           </Link>
         </p>
       </footer>

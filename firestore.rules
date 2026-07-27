@@ -5,6 +5,109 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Doubles as the learner-facing assessor directory (assessor docs are
+    // synced onto themselves via personaAssessorDirectory.js), so any
+    // signed-in user needs read access to active assessors, not just the
+    // owner. Beyond their own doc, a learner may only ever apply two
+    // narrowly-scoped increments: bump `studentsCount` by exactly 1 (when
+    // they assign this assessor) or record a one-time star rating via
+    // `ratingSum`/`ratingCount`, guarded by the `ratings/{learnerUid}`
+    // subdoc below so each learner can only rate a given assessor once.
+    match /persona_users/{userId} {
+      allow read: if request.auth != null
+        && (request.auth.uid == userId || resource.data.kycStatus == 'active');
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null
+        && (
+          request.auth.uid == userId
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['studentsCount'])
+            && request.resource.data.studentsCount == resource.data.get('studentsCount', 0) + 1
+          )
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ratingSum', 'ratingCount'])
+            && request.resource.data.ratingCount == resource.data.get('ratingCount', 0) + 1
+            && (request.resource.data.ratingSum - resource.data.get('ratingSum', 0)) >= 1
+            && (request.resource.data.ratingSum - resource.data.get('ratingSum', 0)) <= 5
+            && !exists(/databases/$(database)/documents/persona_users/$(userId)/ratings/$(request.auth.uid))
+          )
+        );
+      allow delete: if false;
+
+      // One rating doc per learner per assessor—doc ID is the learner's own
+      // uid, so it can only ever be created once (no update/delete), which
+      // is what the parent rule above relies on to block double-rating.
+      match /ratings/{learnerUid} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && request.auth.uid == learnerUid
+          && request.resource.data.score is int
+          && request.resource.data.score >= 1 && request.resource.data.score <= 5;
+        allow update, delete: if false;
+      }
+    }
+
+    match /persona_skill_progress/{userId}/skills/{skillId} {
+      // The learner can always read their own progress; the assessor
+      // assigned to it can read it too, so they can see submitted work.
+      allow read: if request.auth != null
+        && (request.auth.uid == userId || resource.data.assignedAssessorId == request.auth.uid);
+      allow create: if request.auth != null && request.auth.uid == userId;
+      // Once an assessor is assigned, it can never be changed—even by the
+      // owner—so the learner's own update is only allowed while it's still
+      // unset or is being written back unchanged. The assigned assessor may
+      // also update the doc (to review submissions).
+      allow update: if request.auth != null
+        && (
+          (
+            request.auth.uid == userId
+            && (
+              resource.data.assignedAssessorId == null
+              || resource.data.assignedAssessorId == request.resource.data.assignedAssessorId
+            )
+          )
+          || resource.data.assignedAssessorId == request.auth.uid
+        );
+    }
+
+    // Public-ish directory of assessors learners can pick from—only
+    // non-sensitive fields, and only the assessor themselves can write it.
+    // `kycStatus` moves unverified -> pending -> active. The owner can only
+    // ever push it through that one unverified -> pending step (submitting
+    // their KYC form) or leave it unchanged; it must start at 'unverified'
+    // on creation; and it only ever reaches 'active' via a manual,
+    // out-of-band edit (e.g. the Firebase console), never through the app.
+    match /persona_assessor_directory/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.kycStatus == 'unverified';
+      allow update: if request.auth != null && request.auth.uid == userId
+        && (
+          request.resource.data.kycStatus == resource.data.kycStatus
+          || (
+            resource.data.kycStatus == 'unverified'
+            && request.resource.data.kycStatus == 'pending'
+          )
+        );
+      allow delete: if false;
+    }
+
+    // Generated learner programmes for any track (voice, design, future
+    // ones)—created server-side by the task-generation backend, so the
+    // client can only read its own. The owner may still update it to pick
+    // an assessor (permanent, once set—same rule as persona_skill_progress)
+    // and to flip `trainingStarted` once that assessor is locked in.
+    match /provn_programmes/{programmeId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if false;
+      allow update: if request.auth != null
+        && resource.data.userId == request.auth.uid
+        && (
+          resource.data.assignedAssessorId == null
+          || resource.data.assignedAssessorId == request.resource.data.assignedAssessorId
+        );
+      allow delete: if false;
+    }
+
     match /speakly_programmes/{programmeId} {
       allow read: if request.auth != null
         && (

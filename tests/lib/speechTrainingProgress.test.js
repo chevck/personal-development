@@ -7,7 +7,7 @@ import {
   getWeekDayRange,
   isDayLocked,
   parseDateKey,
-} from './speechTrainingProgress';
+} from '../../src/lib/speechTrainingProgress';
 
 describe('speechTrainingProgress calendar', () => {
   const start = '2026-05-24';

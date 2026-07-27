@@ -3,7 +3,7 @@ import {
   extensionForMimeType,
   isAppleMobile,
   normalizeMimeType,
-} from './audioRecording';
+} from '../../src/lib/audioRecording';
 
 describe('audioRecording', () => {
   test('extensionForMimeType', () => {

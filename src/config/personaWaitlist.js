@@ -31,6 +31,6 @@ export const PERSONA_WAITLIST_HEARD_ABOUT = [
   { id: 'search', label: 'Search engine' },
   { id: 'coach', label: 'Coach, teacher, or mentor' },
   { id: 'podcast', label: 'Podcast or video' },
-  { id: 'persona', label: 'Persona website' },
+  { id: 'persona', label: 'Provn website' },
   { id: 'other', label: 'Other' },
 ];

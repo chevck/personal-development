@@ -95,7 +95,7 @@ export default function SpeaklyAppLayout({ sidebar, children }) {
 
         <div className="relative z-10 shrink-0 border-t border-white/10 px-6 py-5">
           <SpeaklyWaveformDecor className="mb-3 w-full" />
-          <p className="text-xs text-white/45">Speak With Intention · Persona</p>
+          <p className="text-xs text-white/45">Speak With Intention · Provn</p>
         </div>
       </aside>
     </div>

@@ -7,7 +7,7 @@ import {
   parseSpeaklyRecordingPath,
   resolveSubmissionDocId,
   submissionAcceptsReview,
-} from './speechTrainingAssessments';
+} from '../../src/lib/speechTrainingAssessments';
 
 describe('assessment share URLs', () => {
   test('react-router matches speakly recording path', () => {

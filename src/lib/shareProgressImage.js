@@ -139,7 +139,7 @@ export function buildShareCaption({
     personalComment?.trim() ? personalComment.trim() : null,
     score != null ? `Assessor score: ${score}/10` : null,
     `${completedCount}/${programDuration} days done`,
-    '#Speakly #SpeechTraining #Persona',
+    '#Speakly #SpeechTraining #Provn',
   ].filter(Boolean);
 
   return lines.join('\n\n');

@@ -119,7 +119,7 @@ export function validateWaitlistEntry(entry) {
   }
 
   if (entry.heardAbout === 'other' && !entry.heardAboutOther?.trim()) {
-    throw new Error('Tell us how you heard about Persona.');
+    throw new Error('Tell us how you heard about Provn.');
   }
 
   const additionalNotes = entry.additionalNotes?.trim() ?? '';

@@ -26,6 +26,8 @@ export const SPEAKLY_REASONS = [
   { id: 'more-confident', label: 'I want to feel more confident' },
   { id: 'career-visibility', label: 'Career growth and visibility' },
   { id: 'too-many-fillers', label: 'Too many filler words (um, uh, like)' },
+  { id: 'improve-singing', label: 'I want to improve my singing' },
+  { id: 'voice-over-work', label: "I'm pursuing voice over work" },
   { id: 'other', label: 'Other' },
 ];
 
@@ -39,6 +41,8 @@ export const SPEAKLY_SPEAKING_CONTEXTS = [
   { id: 'online', label: 'Video calls & online meetings' },
   { id: 'education', label: 'Classroom & teaching' },
   { id: 'content', label: 'Podcasts, videos & recorded content' },
+  { id: 'stage', label: 'Stage & live performance' },
+  { id: 'studio', label: 'Studio recording & voice overs' },
   { id: 'other', label: 'Other' },
 ];
 
@@ -51,6 +55,8 @@ export const SPEAKLY_END_GOALS = [
   { id: 'ace-interviews', label: 'Ace interviews' },
   { id: 'create-content', label: 'Create podcasts or videos with ease' },
   { id: 'everyday-conversation', label: 'Better everyday conversations' },
+  { id: 'perform-music', label: 'Sing or perform music confidently' },
+  { id: 'voice-over-career', label: 'Land voice over & narration work' },
   { id: 'other', label: 'Other' },
 ];
 
@@ -67,6 +73,8 @@ export const SPEAKLY_FOCUS_AREAS = [
   { id: 'nerves', label: 'Nervousness & anxiety' },
   { id: 'voice', label: 'Voice, tone & presence' },
   { id: 'content', label: 'Recorded content' },
+  { id: 'breath', label: 'Breath control & projection' },
+  { id: 'pitch', label: 'Pitch, range & vocal control' },
   { id: 'other', label: 'Other' },
 ];
 

@@ -65,7 +65,7 @@ export default function AssessorHome() {
           </Link>
           {' · '}
           <Link to="/" className="font-semibold text-speakly-coral hover:underline">
-            Persona home
+            Provn home
           </Link>
         </p>
       </main>

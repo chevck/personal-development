@@ -402,7 +402,7 @@ export default function AssessSubmission() {
 
         <div className="mt-8 flex flex-col items-center gap-3 text-center">
           <SpeaklyWaveformDecor className="w-full max-w-xs opacity-40" />
-          <p className="text-xs text-taskly-muted">Speak With Intention · Persona</p>
+          <p className="text-xs text-taskly-muted">Speak With Intention · Provn</p>
         </div>
       </main>
     </div>

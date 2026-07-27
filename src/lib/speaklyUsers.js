@@ -4,13 +4,17 @@ import {
   SPEAKLY_ASSESSOR_BACKGROUND,
   SPEAKLY_ASSESSOR_FOCUS,
   SPEAKLY_ASSESSOR_QUALIFICATIONS,
-  SPEAKLY_END_GOALS,
-  SPEAKLY_FOCUS_AREAS,
   SPEAKLY_REASONS,
-  SPEAKLY_SPEAKING_CONTEXTS,
   SPEAKLY_ROLE_ASSESSOR,
   SPEAKLY_ROLE_LEARNER,
+  SPEAKLY_SPEAKING_CONTEXTS,
 } from "../config/speaklyRegistration";
+import {
+  getSkillTrack,
+  PERSONA_EXPERIENCE_LEVELS,
+  PERSONA_TRACK_VOICE,
+} from "../config/personaRegistration";
+import { PERSONA_USERS_COLLECTION } from "./personaUsers";
 import {
   MAX_PROGRAM_DAYS,
   MIN_PROGRAM_DAYS,
@@ -21,11 +25,6 @@ import apiClient from "./apiClient";
 export const SPEAKLY_USERS_COLLECTION = "speakly_users";
 
 const VALID_REASON_IDS = new Set(SPEAKLY_REASONS.map((a) => a.id));
-const VALID_SPEAKING_CONTEXT_IDS = new Set(
-  SPEAKLY_SPEAKING_CONTEXTS.map((a) => a.id),
-);
-const VALID_END_GOAL_IDS = new Set(SPEAKLY_END_GOALS.map((a) => a.id));
-const VALID_FOCUS_IDS = new Set(SPEAKLY_FOCUS_AREAS.map((a) => a.id));
 const VALID_QUALIFICATION_IDS = new Set(
   SPEAKLY_ASSESSOR_QUALIFICATIONS.map((a) => a.id),
 );
@@ -35,6 +34,10 @@ const VALID_ASSESSOR_FOCUS_IDS = new Set(
 const VALID_BACKGROUND_IDS = new Set(
   SPEAKLY_ASSESSOR_BACKGROUND.map((a) => a.id),
 );
+
+function validIdsFrom(bank) {
+  return new Set((bank || []).map((option) => option.id));
+}
 
 export function getSpeaklyUserRole(profile) {
   return profile?.role === SPEAKLY_ROLE_ASSESSOR
@@ -57,31 +60,72 @@ function validatePillSelection({ values, validIds, otherText, label }) {
   }
 }
 
+/** A single value from `profile.discipline`, or the first of a legacy array-based field. */
+function normalizeDiscipline(profile) {
+  const raw = profile.discipline ?? profile.disciplines ?? profile.voiceDisciplines;
+  if (Array.isArray(raw)) return raw[0] ?? null;
+  return raw ?? null;
+}
+
+/**
+ * Validates a learner profile's answers against whichever track it's
+ * actually for—disciplines, reasons, contexts, focus areas, and end goals
+ * are all checked generically against that track's question bank, so this
+ * works the same way regardless of which skill is being learned.
+ */
 function validateLearnerProfile(profile) {
+  // Callers that predate the multi-track wizard (e.g. the legacy Speakly-only
+  // registration page) never set `track`—treat that as voice, since this
+  // collection's whole reason for existing was voice training.
+  const learnerQuestions =
+    getSkillTrack(profile.track || PERSONA_TRACK_VOICE)?.learnerQuestions ?? {};
+  // That same legacy page also sends `speakingContexts`/`voiceDisciplines`
+  // instead of the generic wizard's `contexts`/`discipline`.
+  const contexts = profile.contexts ?? profile.speakingContexts;
+  const contextsOther = profile.contextsOther ?? profile.speakingContextsOther;
+  const discipline = normalizeDiscipline(profile);
+
+  // Discipline is a single choice, and (like level) optional on entry
+  // points that predate it—but any provided value must be valid for this
+  // profile's track.
+  if (
+    discipline != null &&
+    !validIdsFrom(learnerQuestions.disciplines).has(discipline)
+  ) {
+    throw new Error("Choose a valid discipline.");
+  }
+
+  // Level is a single choice, not a pill multi-select, and (like disciplines)
+  // is optional on entry points that predate it—but any provided value must
+  // be one of the real experience levels.
+  if (profile.level != null && !validIdsFrom(PERSONA_EXPERIENCE_LEVELS).has(profile.level)) {
+    throw new Error("Choose a valid experience level.");
+  }
+
   validatePillSelection({
     values: profile.reasonsForJoining,
-    validIds: VALID_REASON_IDS,
+    validIds: validIdsFrom(learnerQuestions.reasons),
     otherText: profile.reasonsForJoiningOther,
     label: "reasons",
   });
 
   validatePillSelection({
-    values: profile.speakingContexts,
-    validIds: VALID_SPEAKING_CONTEXT_IDS,
-    otherText: profile.speakingContextsOther,
-    label: "speaking context",
+    values: contexts,
+    validIds: validIdsFrom(learnerQuestions.contexts),
+    otherText: contextsOther,
+    label: "context",
   });
 
   validatePillSelection({
     values: profile.focusAreas,
-    validIds: VALID_FOCUS_IDS,
+    validIds: validIdsFrom(learnerQuestions.focus),
     otherText: profile.focusAreasOther,
     label: "focus area",
   });
 
   validatePillSelection({
     values: profile.endGoals,
-    validIds: VALID_END_GOAL_IDS,
+    validIds: validIdsFrom(learnerQuestions.goals),
     otherText: profile.endGoalsOther,
     label: "end goal",
   });
@@ -151,13 +195,14 @@ export function validateRegistrationProfile(profile) {
   }
 }
 
-export function buildSpeaklyUserDocument(uid, profile) {
+export function buildUserDocument(uid, profile) {
   const now = new Date().toISOString();
   const base = {
     uid,
     name: profile.name.trim(),
     email: profile.email.trim().toLowerCase(),
     role: profile.role,
+    track: profile.track,
     createdAt: now,
     updatedAt: now,
   };
@@ -178,17 +223,24 @@ export function buildSpeaklyUserDocument(uid, profile) {
     };
   }
 
+  // Contexts stored under their original Speakly field names for backward
+  // compatibility with code that already reads `speakingContexts` (e.g.
+  // assessment submission context)—sourced from whichever the caller
+  // actually sent: the generic wizard's `contexts`, or the legacy page's.
+  const contexts = profile.contexts ?? profile.speakingContexts;
+  const contextsOther = profile.contextsOther ?? profile.speakingContextsOther;
+
   return {
     ...base,
     role: SPEAKLY_ROLE_LEARNER,
+    level: profile.level ?? null,
+    discipline: normalizeDiscipline(profile),
     reasonsForJoining: [...profile.reasonsForJoining],
     reasonsForJoiningOther: profile.reasonsForJoining.includes("other")
       ? profile.reasonsForJoiningOther.trim()
       : null,
-    speakingContexts: [...profile.speakingContexts],
-    speakingContextsOther: profile.speakingContexts.includes("other")
-      ? profile.speakingContextsOther.trim()
-      : null,
+    contexts: [...contexts],
+    contextsOther: contexts.includes("other") ? contextsOther.trim() : null,
     focusAreas: [...profile.focusAreas],
     focusAreasOther: profile.focusAreas.includes("other")
       ? profile.focusAreasOther.trim()
@@ -201,6 +253,24 @@ export function buildSpeaklyUserDocument(uid, profile) {
   };
 }
 
+/**
+ * Every new user—any role, any track—is created here in `persona_users`,
+ * the one canonical user directory. `createSpeaklyUser` below is a separate,
+ * legacy-only path for the old Speakly-specific registration page.
+ */
+export async function createPersonaUser(uid, profile) {
+  if (!isFirebaseConfigured || !db) {
+    throw new Error("Firebase is not configured.");
+  }
+  validateRegistrationProfile(profile);
+  console.log("starting build user document", { profile });
+  const data = buildUserDocument(uid, profile);
+  console.log({ data });
+  await apiClient.post("/provn-api/task/create", data, { toast: false });
+  await setDoc(doc(db, PERSONA_USERS_COLLECTION, uid), data);
+  return data;
+}
+
 export async function createSpeaklyUser(uid, profile) {
   if (!isFirebaseConfigured || !db) {
     throw new Error("Firebase is not configured.");
@@ -208,7 +278,7 @@ export async function createSpeaklyUser(uid, profile) {
 
   validateRegistrationProfile(profile);
 
-  const data = buildSpeaklyUserDocument(uid, profile);
+  const data = buildUserDocument(uid, profile);
   await apiClient.post("/speakly-api/task/create", data, { toast: false });
   await setDoc(doc(db, SPEAKLY_USERS_COLLECTION, uid), data);
   return data;

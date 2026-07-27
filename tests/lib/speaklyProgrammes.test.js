@@ -2,14 +2,14 @@ import {
   getLocalProgrammePhases,
   normalizeProgrammePhases,
   resolveSpeaklyProgrammeForUser,
-} from './speaklyProgrammes';
-import { getCurriculumLength, setProgrammePhases } from './speechTrainingProgram';
+} from '../../src/lib/speaklyProgrammes';
+import { getCurriculumLength, setProgrammePhases } from '../../src/lib/speechTrainingProgram';
 
-jest.mock('./speaklyUsers', () => ({
+jest.mock('../../src/lib/speaklyUsers', () => ({
   getSpeaklyUser: jest.fn(),
 }));
 
-jest.mock('../firebase/config', () => ({
+jest.mock('../../src/firebase/config', () => ({
   db: {},
   isFirebaseConfigured: true,
 }));
@@ -20,7 +20,7 @@ jest.mock('firebase/firestore', () => ({
 }));
 
 import { getDoc } from 'firebase/firestore';
-import { getSpeaklyUser } from './speaklyUsers';
+import { getSpeaklyUser } from '../../src/lib/speaklyUsers';
 
 describe('speaklyProgrammes', () => {
   beforeEach(() => {

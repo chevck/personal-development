@@ -1,14 +1,14 @@
 const publicUrl = process.env.PUBLIC_URL || '';
 
-/** Sculpture mark on black — icon and logo use the same asset. */
+/** Provn burst mark — symbol for icon contexts, full wordmark for the logo. */
 export const PERSONA_BRANDING = {
   id: 'persona',
-  name: 'Persona',
-  icon: `${publicUrl}/persona-icon.png`,
-  logo: `${publicUrl}/persona-logo.png`,
+  name: 'Provn',
+  icon: `${publicUrl}/provn-symbol.svg`,
+  logo: `${publicUrl}/provn-logo.svg`,
 };
 
-/** Per-project logos; projects without an entry use Persona branding. */
+/** Per-project logos; projects without an entry use Provn branding. */
 export const PROJECT_BRANDING = {
   'speech-training': {
     name: 'Speakly',
